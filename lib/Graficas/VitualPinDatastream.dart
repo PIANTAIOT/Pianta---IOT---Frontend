@@ -196,6 +196,7 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //aaaaa
         body: Center(
           child: Card(
             elevation: 4.0,
@@ -203,7 +204,7 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
               borderRadius: BorderRadius.circular(0),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(30.0),
+              padding: const EdgeInsets.all(29.0),
               child: SizedBox(
                   width: 900,
                   height: 500,
