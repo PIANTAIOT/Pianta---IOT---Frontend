@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../Home/templates.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
+import '../maps/mapasensor.dart';
 import '../maps/maps.dart';
 
 class Sensor {
@@ -84,25 +85,6 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
     'v12',
   ];
 
-  Future<dynamic> crearGrafic(String title, String name, String alias) async {
-    final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/'),
-      body: {
-        'titlegraphics': title,
-        'namegraphics': name,
-        'aliasgraphics': alias,
-      },
-    );
-
-    if (response.statusCode == 201) {
-      // El gráfico fue creado exitosamente
-      return json.decode(response.body);
-    } else {
-      // El request falló
-      throw Exception('Error al crear el gráfico');
-    }
-  }
-
   void _navigateToApi() {
     if (_selectedValue != null) {
       // Verificar si el valor de V ya ha sido seleccionado antes
@@ -155,9 +137,12 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
     final storedTitle = prefs.getString('title');
     final storedName = prefs.getString('name');
     final storedAlias = prefs.getString('alias');
+    final storedLocation = prefs.getString('location');
+
     print(storedAlias);
     print(storedName);
     print(storedTitle);
+    print(storedLocation);
     try {
       final response = await http.post(
         Uri.parse('http://127.0.0.1:8000/user/graphics/'),
@@ -165,6 +150,7 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
           'titlegraphics': storedTitle,
           'namegraphics': storedName,
           'aliasgraphics': storedAlias,
+          'location': storedLocation,
         },
         headers: {'Authorization': 'Token $token'},
       );
@@ -189,6 +175,7 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
     await prefs.remove('title');
     await prefs.remove('name');
     await prefs.remove('alias');
+    await prefs.remove('location');
   }
 
   void _saveName(String name) async {
@@ -199,6 +186,11 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
   void _saveAlias(String alias) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('alias', alias);
+  }
+
+  void _saveLocation(String location) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('location', location);
   }
 
   @override
@@ -351,7 +343,9 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
                                                   context,
                                                   MaterialPageRoute(
                                                       builder: (context) =>
-                                                          Localization()));
+                                                          MapSensor())).then(
+                                                      (value) =>
+                                                  {updateLocation(value)});
                                             },
                                             icon: const Icon(
                                               Icons.location_on,
@@ -383,14 +377,16 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
                                 ElevatedButton(
                                   onPressed: () async {
                                     _navigateToApi();
-                                    _saveName(aliasgraphicscontroller.text);
-                                    _saveAlias(nameGraphicscontroller.text);
+                                    _saveName(nameGraphicscontroller.text);
+                                    _saveAlias(aliasgraphicscontroller.text);
+                                    _saveLocation(_locationController.text);
+
                                     await crearGrafico(context);
-                                    Navigator.push(
+                                    Navigator.pop(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => WebDashboard(),
-                                      ),
+                                    );
+                                    Navigator.pop(
+                                      context,
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -411,5 +407,12 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
             ),
           ),
         ));
+  }
+
+  updateLocation(value) {
+    setState(() {
+      _locationController.text = value.toString();
+      print(_locationController.text);
+    });
   }
 }

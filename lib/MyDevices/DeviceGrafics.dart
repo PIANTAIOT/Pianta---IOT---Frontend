@@ -8,7 +8,7 @@ import 'dart:math';
 
 import '../Funciones/constantes.dart';
 
-// ignore: camel_case_types
+//ignore: camel_case_types
 //grafica circular
 
 class SensorData {
