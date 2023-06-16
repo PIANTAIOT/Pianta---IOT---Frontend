@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:pianta/MyDevices/Dashboard.dart';
 import 'package:http/http.dart' as http;
+import '../Home/graphics_model.dart';
+import '../Home/template_model.dart';
 import '../Home/templates.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
@@ -65,6 +67,10 @@ class VirtualPinDatastream extends StatefulWidget {
 }
 
 class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
+  final graphicstemplate = graphics = [];
+  late Future<List<GrapchisTemplate>> futureGraphics;
+
+
   final _formKey = GlobalKey<FormState>();
   final _deviceNameController = TextEditingController();
   final _locationController = TextEditingController();
@@ -84,7 +90,11 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
     'v11',
     'v12',
   ];
-
+@override
+void initState() {
+  super.initState();
+  futureGraphics = fetchGraphics();
+}
   void _navigateToApi() {
     if (_selectedValue != null) {
       // Verificar si el valor de V ya ha sido seleccionado antes
@@ -125,6 +135,8 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
       }
     }
   }
+
+
 
   final TextEditingController nameGraphicscontroller = TextEditingController();
   final TextEditingController aliasgraphicscontroller = TextEditingController();
@@ -192,6 +204,27 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('location', location);
   }
+
+
+  Future<List<GrapchisTemplate>> fetchGraphics() async {
+    var box = await Hive.openBox(tokenBox);
+    final token = box.get("token") as String?;
+    final response = await http.get(
+      Uri.parse('http://127.0.0.1:8000/user/graphics/'),
+      headers: {'Authorization': 'Token $token'},
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      final List<GrapchisTemplate> projects =
+      jsonList.map((json) => GrapchisTemplate.fromJson(json)).toList();
+      //esto refresca el proyecto para ver los cambios
+      //await refreshProjects();
+      return projects;
+    } else {
+      throw Exception('Failed to load project list');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -381,13 +414,14 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
                                     _saveName(nameGraphicscontroller.text);
                                     _saveAlias(aliasgraphicscontroller.text);
                                     _saveLocation(_locationController.text);
-
                                     await crearGrafico(context);
-                                    Navigator.pop(
+                                    await fetchGraphics();
+                                    Navigator.push(
                                       context,
-                                    );
-                                    Navigator.pop(
-                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                        const WebDashboard(),
+                                      ),
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
