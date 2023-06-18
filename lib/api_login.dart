@@ -64,19 +64,24 @@ Future<String?> getEmail(String token) async {
   //llamamos especificamente el email registrado del usuario
   final user = await getUser(token);
   return user?.email;
+
 }
 Future<String?> getLastLogin(String token) async {
+  var box = await Hive.openBox(tokenBox);
+  final token = box.get("token") as String?;
   //llamamos especificamente la ultima vez que el usuario se a autenticado
   var url = Uri.parse("$baseUrl/user/auth/user/");
   var res = await http.get(url, headers: {
     'Authorization': 'Token ${token}',
   });
+print(res.body);
   if (res.statusCode == 200) {
     var json = jsonDecode(res.body);
     var lastLoginString = json['last_login'] as String?;
     if (lastLoginString != null) {
       return lastLoginString.toString();
     }
+
   }
   return null;
 }

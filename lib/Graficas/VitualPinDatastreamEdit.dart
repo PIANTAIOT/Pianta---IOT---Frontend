@@ -59,20 +59,21 @@ class Sensor {
   }
 }
 
-class VirtualPinDatastream extends StatefulWidget {
-  const VirtualPinDatastream({Key? key}) : super(key: key);
+class VirtualPinDatastreamEdit extends StatefulWidget {
+  final String name;
+  final String alias;
+  //final String location;
+  const VirtualPinDatastreamEdit({Key? key, required this.name, required this.alias}) : super(key: key);
 
   @override
-  State<VirtualPinDatastream> createState() => _VirtualPinDatastreamState();
+  State<VirtualPinDatastreamEdit> createState() => _VirtualPinDatastreamEditState();
 }
 
-class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
+class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
   final graphicstemplate = graphics = [];
   late Future<List<GrapchisTemplate>> futureGraphics;
 
 
-  final _formKey = GlobalKey<FormState>();
-  final _deviceNameController = TextEditingController();
   final _locationController = TextEditingController();
   String? _selectedValue;
   List<Sensor> _sensorData = [];
@@ -90,11 +91,7 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
     'v11',
     'v12',
   ];
-@override
-void initState() {
-  super.initState();
-  futureGraphics = fetchGraphics();
-}
+
   void _navigateToApi() {
     if (_selectedValue != null) {
       // Verificar si el valor de V ya ha sido seleccionado antes
@@ -133,99 +130,6 @@ void initState() {
         //Navigator.push(context, MaterialPageRoute(builder: (context) => WebDashboard()));
         print(apiUrl);
       }
-    }
-  }
-
-
-
-  final TextEditingController nameGraphicscontroller = TextEditingController();
-  final TextEditingController aliasgraphicscontroller = TextEditingController();
-
-  Future<dynamic> crearGrafico(BuildContext context) async {
-    var box = await Hive.openBox(tokenBox);
-    final token = box.get("token") as String?;
-
-    final prefs = await SharedPreferences.getInstance();
-    final storedTitle = prefs.getString('title');
-    final storedName = prefs.getString('name');
-    final storedAlias = prefs.getString('alias');
-    final storedLocation = prefs.getString('location');
-    final storedIsCircular = prefs.getBool('is_circular') ?? false; // Obtener el valor de isCircular desde SharedPreferences
-
-    print(storedAlias);
-    print(storedName);
-    print(storedTitle);
-    print(storedLocation);
-    print(storedIsCircular);
-    try {
-      final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/user/graphics/'),
-        body: {
-          'titlegraphics': storedTitle,
-          'namegraphics': storedName,
-          'aliasgraphics': storedAlias,
-          'location': storedLocation,
-          'is_circular': storedIsCircular.toString(),
-        },
-        headers: {'Authorization': 'Token $token'},
-      );
-      if (response.statusCode == 201) {
-        // El gráfico fue creado exitosamente
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('graphics created successfully')),
-        );
-      } else {
-        // El request falló
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('An error occurred while creating the graphics')),
-        );
-      }
-    } catch (e) {
-      print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
-    await prefs.remove('title');
-    await prefs.remove('name');
-    await prefs.remove('alias');
-    await prefs.remove('location');
-    await prefs.remove('is_circular');
-  }
-
-  void _saveName(String name) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('name', name);
-  }
-
-  void _saveAlias(String alias) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('alias', alias);
-  }
-
-  void _saveLocation(String location) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('location', location);
-  }
-
-
-  Future<List<GrapchisTemplate>> fetchGraphics() async {
-    var box = await Hive.openBox(tokenBox);
-    final token = box.get("token") as String?;
-    final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/'),
-      headers: {'Authorization': 'Token $token'},
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(response.body);
-      final List<GrapchisTemplate> projects =
-      jsonList.map((json) => GrapchisTemplate.fromJson(json)).toList();
-      //esto refresca el proyecto para ver los cambios
-      //await refreshProjects();
-      return projects;
-    } else {
-      throw Exception('Failed to load project list');
     }
   }
 
@@ -286,11 +190,11 @@ void initState() {
                                           ),
                                         ),
                                         const SizedBox(height: 16.0),
-                                        TextFormField(
-                                          controller: nameGraphicscontroller,
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter name',
-                                            border: OutlineInputBorder(),
+                                        Text(
+                                          widget.name, // Mostrar el título pasado como parámetro
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14.0,
                                           ),
                                         ),
                                       ],
@@ -308,11 +212,11 @@ void initState() {
                                           ),
                                         ),
                                         const SizedBox(height: 16.0),
-                                        TextFormField(
-                                          controller: aliasgraphicscontroller,
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter title',
-                                            border: OutlineInputBorder(),
+                                        Text(
+                                          widget.alias, // Mostrar el título pasado como parámetro
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14.0,
                                           ),
                                         ),
                                       ],
@@ -401,25 +305,7 @@ void initState() {
                                 SizedBox(width: 20),
                                 ElevatedButton(
                                   onPressed: () async {
-                                    Navigator.of(context).pop();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    primary: Colors.white,
-                                  ),
-                                  child: const Text(
-                                    'Cancel',
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                ),
-                                SizedBox(width: 20),
-                                ElevatedButton(
-                                  onPressed: () async {
                                     _navigateToApi();
-                                    _saveName(nameGraphicscontroller.text);
-                                    _saveAlias(aliasgraphicscontroller.text);
-                                    _saveLocation(_locationController.text);
-                                    await crearGrafico(context);
-                                    await fetchGraphics();
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -432,7 +318,7 @@ void initState() {
                                     primary: Color.fromRGBO(0, 191, 174, 1),
                                   ),
                                   child: const Text(
-                                    'Save',
+                                    'Ok',
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 )

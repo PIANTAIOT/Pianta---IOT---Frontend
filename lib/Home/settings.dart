@@ -34,10 +34,14 @@ class _SettingsState extends State<Settings> {
       final username = await getUsername(token!);
       final lastLogin = await getLastLogin(token);
       final email = await getEmail(token);
+      print(email);
       setState(() {
         _username = username;
         _email = email;
         _lastLogin = lastLogin != null ? DateTime.parse(lastLogin).toString() : null;
+        print(_username);
+        print(_email);
+        print(_lastLogin);
       });
     } catch (e) {
       print('Failed to load username, email and last login: $e');

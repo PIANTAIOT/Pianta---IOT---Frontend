@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:pianta/Graficas/TemplateNewGraficEdit.dart';
 import 'package:pianta/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Funciones/constantes.dart';
 import '../Graficas/TemplateNewGrafic.dart';
 import '../Home/graphics_model.dart';
@@ -29,7 +31,6 @@ class _WebDashboardState extends State<WebDashboard>
   late Animation<double> _animation;
   final maxProgress = 40.0;
   ProjectTemplate? project;
-
 
   @override
   void initState() {
@@ -97,7 +98,13 @@ class _WebDashboardState extends State<WebDashboard>
     }
   }
 
+  void _isCircularorLinealGraphic(bool isCircular) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_circular', isCircular);
+  }
+
   bool isLoading = false;
+  bool isCircular = true;
 
   @override
   Widget build(BuildContext context) {
@@ -269,6 +276,10 @@ class _WebDashboardState extends State<WebDashboard>
                                                               child:
                                                                   GestureDetector(
                                                                 onTap: () {
+                                                                  isCircular =
+                                                                      true;
+                                                                  _isCircularorLinealGraphic(
+                                                                      isCircular);
                                                                   Navigator
                                                                       .push(
                                                                     context,
@@ -350,6 +361,10 @@ class _WebDashboardState extends State<WebDashboard>
                                                               child:
                                                                   GestureDetector(
                                                                 onTap: () {
+                                                                  isCircular =
+                                                                      false;
+                                                                  _isCircularorLinealGraphic(
+                                                                      isCircular);
                                                                   // Acción a realizar al tocar la gráfica lineal duplicada
                                                                   Navigator
                                                                       .push(
@@ -385,6 +400,17 @@ class _WebDashboardState extends State<WebDashboard>
                                                 List<GrapchisTemplate>>(
                                               future: futureGraphics,
                                               builder: (context, snapshot) {
+                                                TextEditingController
+                                                    titleController =
+                                                    TextEditingController();
+                                                TextEditingController
+                                                    nameController =
+                                                    TextEditingController();
+                                                TextEditingController
+                                                    aliasController =
+                                                    TextEditingController();
+                                                final _formKey =
+                                                    GlobalKey<FormState>();
                                                 if (snapshot.hasData) {
                                                   final projects =
                                                       snapshot.data!;
@@ -419,164 +445,743 @@ class _WebDashboardState extends State<WebDashboard>
                                                             int index) {
                                                       final project =
                                                           projects[index];
-                                                      final title = project.titlegraphics;
-                                                      return Container(
-                                                        height: 1200,
-                                                        child: Card(
-                                                          child: SizedBox(
-                                                            width: 250,
-                                                            height: 250,
-                                                            child: Stack(
-                                                              children: [
-                                                                Center(
-                                                                  child:
-                                                                      CustomPaint(
-                                                                    painter: Circular_graphics(
-                                                                        _animation
-                                                                            .value),
-                                                                    child:
-                                                                        SizedBox(
-                                                                      width:
-                                                                          200,
-                                                                      height:
-                                                                          200,
+                                                      final title =
+                                                          project.titlegraphics;
+                                                      if (project.is_circular ==
+                                                          true) {
+                                                        return Container(
+                                                          height: 1200,
+                                                          child:
+                                                              GestureDetector(
+                                                            onTap: () {
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          TempCreateGraficsEdit(
+                                                                    title: project
+                                                                        .titlegraphics,
+                                                                    name: project
+                                                                        .namegraphics,
+                                                                    alias: project
+                                                                        .aliasgraphics,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                            child: Card(
+                                                              child: SizedBox(
+                                                                width: 250,
+                                                                height: 250,
+                                                                child: Stack(
+                                                                  children: [
+                                                                    Center(
                                                                       child:
-                                                                          Center(
+                                                                          CustomPaint(
+                                                                        painter:
+                                                                            Circular_graphics(_animation.value),
                                                                         child:
-                                                                            Text(
-                                                                          '0 °C',
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                50,
+                                                                            SizedBox(
+                                                                          width:
+                                                                              200,
+                                                                          height:
+                                                                              200,
+                                                                          child:
+                                                                              Center(
+                                                                            child:
+                                                                                Text(
+                                                                              '0 °C',
+                                                                              style: TextStyle(
+                                                                                fontSize: 50,
+                                                                              ),
+                                                                            ),
                                                                           ),
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                  ),
-                                                                ),
-                                                                Text(
-                                                                  title,
-                                                                  style: TextStyle(
-                                                                    fontWeight: FontWeight.bold,
-                                                                    fontSize: 20,
-                                                                  ),
-                                                                  textAlign: TextAlign.left,
-                                                                ),
-                                                                Positioned(
-                                                                  top: 10,
-                                                                  right: 10,
-                                                                  child:
-                                                                      IconButton(
-                                                                    icon: Icon(
-                                                                        Icons
-                                                                            .edit),
-                                                                    onPressed:
-                                                                        () {
-                                                                      // Acción para editar la tarjeta
-                                                                    },
-                                                                  ),
-                                                                ),
-                                                                Positioned(
-                                                                  bottom: 10,
-                                                                  right: 10,
-                                                                  child: IconButton(
-                                                                    icon: const Icon(Icons.delete,
-                                                                        color: Colors.black),
-                                                                    onPressed: () async {
-                                                                      showDialog(
-                                                                        context: context,
-                                                                        builder: (BuildContext context) {
-                                                                          return AlertDialog(
-                                                                            title: const Text(
-                                                                                'Delete Graphic?'),
-                                                                            content: const Text(
-                                                                                'Are you sure you want to delete this Graphic?'),
-                                                                            actions: <Widget>[
-                                                                              Row(
-                                                                                mainAxisAlignment:
-                                                                                MainAxisAlignment.end,
-                                                                                children: [
-                                                                                  TextButton(
-                                                                                    style: ButtonStyle(
-                                                                                      backgroundColor:
-                                                                                      MaterialStateProperty
-                                                                                          .all<Color>(
-                                                                                        Colors.red,
-                                                                                      ),
-                                                                                    ),
-                                                                                    onPressed: () async {
-                                                                                      final response = await http.delete(
-                                                                                          Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'));
-                                                                                      if (response.statusCode == 204) {
-                                                                                      } else {
-                                                                                        print("could not delete graph");
-                                                                                      }
-                                                                                      await fetchGraphics();
-                                                                                      Navigator.push(
-                                                                                        context,
-                                                                                        MaterialPageRoute(
-                                                                                          builder: (context) =>
-                                                                                          const WebDashboard(),
-                                                                                        ),
-                                                                                      );
-                                                                                    },
-                                                                                    child: const Text(
-                                                                                      'Delete',
-                                                                                      style: TextStyle(
-                                                                                        color:
-                                                                                        Colors.white,
-                                                                                        fontWeight:
-                                                                                        FontWeight
-                                                                                            .bold,
+                                                                    Text(
+                                                                      title,
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        fontSize:
+                                                                            20,
+                                                                      ),
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .left,
+                                                                    ),
+                                                                    Positioned(
+                                                                      top: 10,
+                                                                      right: 10,
+                                                                      child:
+                                                                          IconButton(
+                                                                        icon: Icon(
+                                                                            Icons.edit),
+                                                                        onPressed:
+                                                                            () async {
+                                                                          titleController.text =
+                                                                              project.titlegraphics ?? '';
+                                                                          nameController.text =
+                                                                              project.namegraphics ?? '';
+                                                                          aliasController.text =
+                                                                              project.aliasgraphics ?? '';
+                                                                          // Acción para editar la tarjeta
+                                                                          showDialog(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (context) {
+                                                                              return AlertDialog(
+                                                                                elevation: 4.0,
+                                                                                shape: RoundedRectangleBorder(
+                                                                                  borderRadius: BorderRadius.circular(0),
+                                                                                ),
+                                                                                contentPadding: const EdgeInsets.all(30.0),
+                                                                                content: SizedBox(
+                                                                                  width: 350,
+                                                                                  height: 400,
+                                                                                  child: SingleChildScrollView(
+                                                                                    child: Form(
+                                                                                      key: _formKey,
+                                                                                      child: Column(
+                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                        children: [
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          const Text(
+                                                                                            'Edit Graphics',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 18.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          Text(
+                                                                                            'Chart title: ',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          TextFormField(
+                                                                                            //initialValue: _username ?? '',
+                                                                                            controller: titleController,
+                                                                                            validator: (valor) {
+                                                                                              if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                //allow upper and lower case alphabets and space
+                                                                                                return "Please enter your name";
+                                                                                              } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                return 'your password must have digits';
+                                                                                              } else {
+                                                                                                return null;
+                                                                                              }
+                                                                                            },
+                                                                                            keyboardType: TextInputType.text,
+                                                                                            //initialValue: _username, // Agregamos el valor inicial aquí
+                                                                                            decoration: const InputDecoration(
+                                                                                              prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                              enabledBorder: OutlineInputBorder(
+                                                                                                borderSide: BorderSide(
+                                                                                                  width: 1,
+                                                                                                  color: Colors.grey,
+                                                                                                ), //<-- SEE HERE
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          const Text(
+                                                                                            'Chart Name :',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0, // Se ha cambiado el tamaño a 14.0
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          TextFormField(
+                                                                                            //initialValue: _email ?? '',
+                                                                                            controller: nameController,
+                                                                                            validator: (valor) {
+                                                                                              if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                //allow upper and lower case alphabets and space
+                                                                                                return "Please enter your name";
+                                                                                              } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                return 'your password must have digits';
+                                                                                              } else {
+                                                                                                return null;
+                                                                                              }
+                                                                                            },
+                                                                                            keyboardType: TextInputType.text,
+                                                                                            decoration: const InputDecoration(
+                                                                                              prefixIcon: Icon(Icons.email_outlined),
+                                                                                              enabledBorder: OutlineInputBorder(
+                                                                                                borderSide: BorderSide(
+                                                                                                  width: 1,
+                                                                                                  color: Colors.grey,
+                                                                                                ), //<-- SEE HERE
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          Text(
+                                                                                            'Chart alias: ',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          TextFormField(
+                                                                                            //initialValue: _username ?? '',
+                                                                                            controller: aliasController,
+                                                                                            validator: (valor) {
+                                                                                              if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                //allow upper and lower case alphabets and space
+                                                                                                return "Please enter your name";
+                                                                                              } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                return 'your password must have digits';
+                                                                                              } else {
+                                                                                                return null;
+                                                                                              }
+                                                                                            },
+                                                                                            keyboardType: TextInputType.text,
+                                                                                            //initialValue: _username, // Agregamos el valor inicial aquí
+                                                                                            decoration: const InputDecoration(
+                                                                                              prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                              enabledBorder: OutlineInputBorder(
+                                                                                                borderSide: BorderSide(
+                                                                                                  width: 1,
+                                                                                                  color: Colors.grey,
+                                                                                                ), //<-- SEE HERE
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 20),
+                                                                                          Padding(
+                                                                                            padding: const EdgeInsets.all(30),
+                                                                                            child: Row(
+                                                                                              mainAxisAlignment: MainAxisAlignment.end,
+                                                                                              children: [
+                                                                                                ElevatedButton(
+                                                                                                  onPressed: () {
+                                                                                                    Navigator.of(context).pop();
+                                                                                                  },
+                                                                                                  style: ElevatedButton.styleFrom(
+                                                                                                    minimumSize: const Size(90, 30),
+                                                                                                    backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
+                                                                                                  ),
+                                                                                                  child: const Text(
+                                                                                                    'Cancel',
+                                                                                                    style: TextStyle(fontSize: 12, color: Color.fromRGBO(16, 16, 16, 1)),
+                                                                                                  ),
+                                                                                                ),
+                                                                                                const SizedBox(
+                                                                                                  width: 25, // Espacio de 16 píxeles entre los botones
+                                                                                                ),
+                                                                                                ElevatedButton(
+                                                                                                  onPressed: () async {
+                                                                                                    if (_formKey.currentState!.validate()) {
+                                                                                                      var box = await Hive.openBox(tokenBox);
+                                                                                                      final token = box.get("token") as String?;
+                                                                                                      final response = await http.put(
+                                                                                                        Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'),
+                                                                                                        headers: {
+                                                                                                          'Authorization': 'Token $token',
+                                                                                                          'Content-Type': 'application/json',
+                                                                                                          // Especifica el tipo de contenido del cuerpo de la solicitud
+                                                                                                        },
+                                                                                                        body: jsonEncode({
+                                                                                                          'titlegraphics': titleController.text,
+                                                                                                          'namegraphics': nameController.text,
+                                                                                                          'aliasgraphics': aliasController.text,
+                                                                                                        }),
+                                                                                                      );
+                                                                                                      if (response.statusCode == 200) {
+                                                                                                        print(response.body);
+                                                                                                      } else {
+                                                                                                        print("Could not update graph: ${response.body}");
+                                                                                                      }
+                                                                                                      Navigator.push(
+                                                                                                        context,
+                                                                                                        MaterialPageRoute(builder: (context) => WebDashboard()),
+                                                                                                      );
+                                                                                                    }
+                                                                                                  },
+                                                                                                  style: ElevatedButton.styleFrom(
+                                                                                                    minimumSize: const Size(90, 30),
+                                                                                                    backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
+                                                                                                  ),
+                                                                                                  child: const Text(
+                                                                                                    'Done',
+                                                                                                    style: TextStyle(
+                                                                                                      fontSize: 12,
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ],
+                                                                                            ),
+                                                                                          )
+                                                                                        ],
                                                                                       ),
                                                                                     ),
                                                                                   ),
-                                                                                  Spacer(),
-                                                                                  TextButton(
-                                                                                    style: ButtonStyle(
-                                                                                      backgroundColor:
-                                                                                      MaterialStateProperty
-                                                                                          .all<Color>(
-                                                                                        const Color
-                                                                                            .fromRGBO(
-                                                                                            0,
-                                                                                            191,
-                                                                                            174,
-                                                                                            1),
-                                                                                      ),
-                                                                                    ),
-                                                                                    onPressed: () {
-                                                                                      Navigator.of(
-                                                                                          context)
-                                                                                          .pop();
-                                                                                    },
-                                                                                    child: const Text(
-                                                                                      'Cancel',
-                                                                                      style: TextStyle(
-                                                                                        fontWeight:
-                                                                                        FontWeight
-                                                                                            .bold,
-                                                                                        fontSize: 12,
-                                                                                        color:
-                                                                                        Colors.white,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            ],
+                                                                                ),
+                                                                              );
+                                                                            },
                                                                           );
                                                                         },
-                                                                      );
-                                                                    },
-                                                                  ),
+                                                                      ),
+                                                                    ),
+                                                                    Positioned(
+                                                                      bottom:
+                                                                          10,
+                                                                      right: 10,
+                                                                      child:
+                                                                          IconButton(
+                                                                        icon: const Icon(
+                                                                            Icons
+                                                                                .delete,
+                                                                            color:
+                                                                                Colors.black),
+                                                                        onPressed:
+                                                                            () async {
+                                                                          showDialog(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (BuildContext context) {
+                                                                              return AlertDialog(
+                                                                                title: const Text('Delete Graphic?'),
+                                                                                content: const Text('Are you sure you want to delete this Graphic?'),
+                                                                                actions: <Widget>[
+                                                                                  Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                                                    children: [
+                                                                                      TextButton(
+                                                                                        style: ButtonStyle(
+                                                                                          backgroundColor: MaterialStateProperty.all<Color>(
+                                                                                            Colors.red,
+                                                                                          ),
+                                                                                        ),
+                                                                                        onPressed: () async {
+                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'));
+                                                                                          if (response.statusCode == 204) {
+                                                                                          } else {
+                                                                                            print("could not delete graph");
+                                                                                          }
+                                                                                          await fetchGraphics();
+                                                                                          Navigator.push(
+                                                                                            context,
+                                                                                            MaterialPageRoute(
+                                                                                              builder: (context) => const WebDashboard(),
+                                                                                            ),
+                                                                                          );
+                                                                                        },
+                                                                                        child: const Text(
+                                                                                          'Delete',
+                                                                                          style: TextStyle(
+                                                                                            color: Colors.white,
+                                                                                            fontWeight: FontWeight.bold,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      Spacer(),
+                                                                                      TextButton(
+                                                                                        style: ButtonStyle(
+                                                                                          backgroundColor: MaterialStateProperty.all<Color>(
+                                                                                            const Color.fromRGBO(0, 191, 174, 1),
+                                                                                          ),
+                                                                                        ),
+                                                                                        onPressed: () {
+                                                                                          Navigator.of(context).pop();
+                                                                                        },
+                                                                                        child: const Text(
+                                                                                          'Cancel',
+                                                                                          style: TextStyle(
+                                                                                            fontWeight: FontWeight.bold,
+                                                                                            fontSize: 12,
+                                                                                            color: Colors.white,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ],
+                                                                              );
+                                                                            },
+                                                                          );
+                                                                        },
+                                                                      ),
+                                                                    ),
+                                                                  ],
                                                                 ),
-                                                              ],
+                                                              ),
                                                             ),
                                                           ),
-                                                        ),
-                                                      );
+                                                        );
+                                                      } else {
+                                                        return Container(
+                                                          height: 1200,
+                                                          child:
+                                                              GestureDetector(
+                                                            onTap: () {
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          TempCreateGraficsEdit(
+                                                                    title: project
+                                                                        .titlegraphics,
+                                                                    name: project
+                                                                        .namegraphics,
+                                                                    alias: project
+                                                                        .aliasgraphics,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                            child: Card(
+                                                              child: SizedBox(
+                                                                width: 250,
+                                                                height: 250,
+                                                                child: Stack(
+                                                                  children: [
+                                                                    Center(
+                                                                      child:
+                                                                          SizedBox(
+                                                                        height:
+                                                                            200,
+                                                                        width:
+                                                                            200,
+                                                                        child:
+                                                                            Linea_Graphics(),
+                                                                      ),
+                                                                    ),
+                                                                    Text(
+                                                                      title,
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        fontSize:
+                                                                            20,
+                                                                      ),
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .left,
+                                                                    ),
+                                                                    Positioned(
+                                                                      top: 10,
+                                                                      right: 10,
+                                                                      child:
+                                                                          IconButton(
+                                                                        icon: const Icon(
+                                                                            Icons.edit),
+                                                                            onPressed:
+                                                                                () async {
+                                                                              titleController.text =
+                                                                                  project.titlegraphics ?? '';
+                                                                              nameController.text =
+                                                                                  project.namegraphics ?? '';
+                                                                              aliasController.text =
+                                                                                  project.aliasgraphics ?? '';
+                                                                              // Acción para editar la tarjeta
+                                                                              showDialog(
+                                                                                context:
+                                                                                context,
+                                                                                builder:
+                                                                                    (context) {
+                                                                                  return AlertDialog(
+                                                                                    elevation: 4.0,
+                                                                                    shape: RoundedRectangleBorder(
+                                                                                      borderRadius: BorderRadius.circular(0),
+                                                                                    ),
+                                                                                    contentPadding: const EdgeInsets.all(30.0),
+                                                                                    content: SizedBox(
+                                                                                      width: 350,
+                                                                                      height: 400,
+                                                                                      child: SingleChildScrollView(
+                                                                                        child: Form(
+                                                                                          key: _formKey,
+                                                                                          child: Column(
+                                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                            children: [
+                                                                                              const SizedBox(height: 16.0),
+                                                                                              const Text(
+                                                                                                'Edit Graphics',
+                                                                                                style: TextStyle(
+                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                  fontSize: 18.0,
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 16.0),
+                                                                                              Text(
+                                                                                                'Chart title: ',
+                                                                                                style: TextStyle(
+                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                  fontSize: 14.0,
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 16.0),
+                                                                                              TextFormField(
+                                                                                                //initialValue: _username ?? '',
+                                                                                                controller: titleController,
+                                                                                                validator: (valor) {
+                                                                                                  if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                    //allow upper and lower case alphabets and space
+                                                                                                    return "Please enter your name";
+                                                                                                  } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                    return 'your password must have digits';
+                                                                                                  } else {
+                                                                                                    return null;
+                                                                                                  }
+                                                                                                },
+                                                                                                keyboardType: TextInputType.text,
+                                                                                                //initialValue: _username, // Agregamos el valor inicial aquí
+                                                                                                decoration: const InputDecoration(
+                                                                                                  prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                                  enabledBorder: OutlineInputBorder(
+                                                                                                    borderSide: BorderSide(
+                                                                                                      width: 1,
+                                                                                                      color: Colors.grey,
+                                                                                                    ), //<-- SEE HERE
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 16.0),
+                                                                                              const Text(
+                                                                                                'Chart Name :',
+                                                                                                style: TextStyle(
+                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                  fontSize: 14.0, // Se ha cambiado el tamaño a 14.0
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 16.0),
+                                                                                              TextFormField(
+                                                                                                //initialValue: _email ?? '',
+                                                                                                controller: nameController,
+                                                                                                validator: (valor) {
+                                                                                                  if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                    //allow upper and lower case alphabets and space
+                                                                                                    return "Please enter your name";
+                                                                                                  } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                    return 'your password must have digits';
+                                                                                                  } else {
+                                                                                                    return null;
+                                                                                                  }
+                                                                                                },
+                                                                                                keyboardType: TextInputType.text,
+                                                                                                decoration: const InputDecoration(
+                                                                                                  prefixIcon: Icon(Icons.email_outlined),
+                                                                                                  enabledBorder: OutlineInputBorder(
+                                                                                                    borderSide: BorderSide(
+                                                                                                      width: 1,
+                                                                                                      color: Colors.grey,
+                                                                                                    ), //<-- SEE HERE
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 16.0),
+                                                                                              Text(
+                                                                                                'Chart alias: ',
+                                                                                                style: TextStyle(
+                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                  fontSize: 14.0,
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 16.0),
+                                                                                              TextFormField(
+                                                                                                //initialValue: _username ?? '',
+                                                                                                controller: aliasController,
+                                                                                                validator: (valor) {
+                                                                                                  if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                    //allow upper and lower case alphabets and space
+                                                                                                    return "Please enter your name";
+                                                                                                  } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                    return 'your password must have digits';
+                                                                                                  } else {
+                                                                                                    return null;
+                                                                                                  }
+                                                                                                },
+                                                                                                keyboardType: TextInputType.text,
+                                                                                                //initialValue: _username, // Agregamos el valor inicial aquí
+                                                                                                decoration: const InputDecoration(
+                                                                                                  prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                                  enabledBorder: OutlineInputBorder(
+                                                                                                    borderSide: BorderSide(
+                                                                                                      width: 1,
+                                                                                                      color: Colors.grey,
+                                                                                                    ), //<-- SEE HERE
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 20),
+                                                                                              Padding(
+                                                                                                padding: const EdgeInsets.all(30),
+                                                                                                child: Row(
+                                                                                                  mainAxisAlignment: MainAxisAlignment.end,
+                                                                                                  children: [
+                                                                                                    ElevatedButton(
+                                                                                                      onPressed: () {
+                                                                                                        Navigator.of(context).pop();
+                                                                                                      },
+                                                                                                      style: ElevatedButton.styleFrom(
+                                                                                                        minimumSize: const Size(90, 30),
+                                                                                                        backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
+                                                                                                      ),
+                                                                                                      child: const Text(
+                                                                                                        'Cancel',
+                                                                                                        style: TextStyle(fontSize: 12, color: Color.fromRGBO(16, 16, 16, 1)),
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                    const SizedBox(
+                                                                                                      width: 25, // Espacio de 16 píxeles entre los botones
+                                                                                                    ),
+                                                                                                    ElevatedButton(
+                                                                                                      onPressed: () async {
+                                                                                                        if (_formKey.currentState!.validate()) {
+                                                                                                          var box = await Hive.openBox(tokenBox);
+                                                                                                          final token = box.get("token") as String?;
+                                                                                                          final response = await http.put(
+                                                                                                            Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'),
+                                                                                                            headers: {
+                                                                                                              'Authorization': 'Token $token',
+                                                                                                              'Content-Type': 'application/json',
+                                                                                                              // Especifica el tipo de contenido del cuerpo de la solicitud
+                                                                                                            },
+                                                                                                            body: jsonEncode({
+                                                                                                              'titlegraphics': titleController.text,
+                                                                                                              'namegraphics': nameController.text,
+                                                                                                              'aliasgraphics': aliasController.text,
+                                                                                                            }),
+                                                                                                          );
+                                                                                                          if (response.statusCode == 200) {
+                                                                                                            print(response.body);
+                                                                                                          } else {
+                                                                                                            print("Could not update graph: ${response.body}");
+                                                                                                          }
+                                                                                                          Navigator.push(
+                                                                                                            context,
+                                                                                                            MaterialPageRoute(builder: (context) => WebDashboard()),
+                                                                                                          );
+                                                                                                        }
+                                                                                                      },
+                                                                                                      style: ElevatedButton.styleFrom(
+                                                                                                        minimumSize: const Size(90, 30),
+                                                                                                        backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
+                                                                                                      ),
+                                                                                                      child: const Text(
+                                                                                                        'Done',
+                                                                                                        style: TextStyle(
+                                                                                                          fontSize: 12,
+                                                                                                        ),
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                  ],
+                                                                                                ),
+                                                                                              )
+                                                                                            ],
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  );
+                                                                                },
+                                                                              );
+                                                                            },
+                                                                      ),
+                                                                    ),
+                                                                    Positioned(
+                                                                      bottom:
+                                                                          10,
+                                                                      right: 10,
+                                                                      child:
+                                                                          IconButton(
+                                                                        icon: const Icon(
+                                                                            Icons
+                                                                                .delete,
+                                                                            color:
+                                                                                Colors.black),
+                                                                        onPressed:
+                                                                            () async {
+                                                                          showDialog(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (BuildContext context) {
+                                                                              return AlertDialog(
+                                                                                title: const Text('Delete Graphic?'),
+                                                                                content: const Text('Are you sure you want to delete this Graphic?'),
+                                                                                actions: <Widget>[
+                                                                                  Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                                                    children: [
+                                                                                      TextButton(
+                                                                                        style: ButtonStyle(
+                                                                                          backgroundColor: MaterialStateProperty.all<Color>(
+                                                                                            Colors.red,
+                                                                                          ),
+                                                                                        ),
+                                                                                        onPressed: () async {
+                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'));
+                                                                                          if (response.statusCode == 204) {
+                                                                                          } else {
+                                                                                            print("could not delete graph");
+                                                                                          }
+                                                                                          await fetchGraphics();
+                                                                                          Navigator.push(
+                                                                                            context,
+                                                                                            MaterialPageRoute(
+                                                                                              builder: (context) => const WebDashboard(),
+                                                                                            ),
+                                                                                          );
+                                                                                        },
+                                                                                        child: const Text(
+                                                                                          'Delete',
+                                                                                          style: TextStyle(
+                                                                                            color: Colors.white,
+                                                                                            fontWeight: FontWeight.bold,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      Spacer(),
+                                                                                      TextButton(
+                                                                                        style: ButtonStyle(
+                                                                                          backgroundColor: MaterialStateProperty.all<Color>(
+                                                                                            const Color.fromRGBO(0, 191, 174, 1),
+                                                                                          ),
+                                                                                        ),
+                                                                                        onPressed: () {
+                                                                                          Navigator.of(context).pop();
+                                                                                        },
+                                                                                        child: const Text(
+                                                                                          'Cancel',
+                                                                                          style: TextStyle(
+                                                                                            fontWeight: FontWeight.bold,
+                                                                                            fontSize: 12,
+                                                                                            color: Colors.white,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ],
+                                                                              );
+                                                                            },
+                                                                          );
+                                                                        },
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
                                                     },
                                                   );
                                                 } else if (snapshot.hasError) {
@@ -584,7 +1189,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                       "${snapshot.error}");
                                                 }
                                                 // By default, show a loading spinner
-                                                return Center(
+                                                return const Center(
                                                     child:
                                                         CircularProgressIndicator());
                                               },
