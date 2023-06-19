@@ -13,7 +13,9 @@ import '../Home/graphics_model.dart';
 import '../Home/template_model.dart';
 
 class WebDashboard extends StatefulWidget {
-  const WebDashboard({Key? key}) : super(key: key);
+  final int id;
+  final String name;
+  const WebDashboard({Key? key, required this.id, required this.name}) : super(key: key);
 
   @override
   _WebDashboardState createState() => _WebDashboardState();
@@ -62,7 +64,7 @@ class _WebDashboardState extends State<WebDashboard>
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/'),
+      Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -130,7 +132,7 @@ class _WebDashboardState extends State<WebDashboard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            project?.name ?? '',
+                            widget.name,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 24,
@@ -155,7 +157,7 @@ class _WebDashboardState extends State<WebDashboard>
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const WebDashboard(),
+                                           WebDashboard(id:2, name:''),
                                     ),
                                   );
                                 },
@@ -196,7 +198,7 @@ class _WebDashboardState extends State<WebDashboard>
                               child: Column(
                                 children: [
                                   Text(
-                                    projecto?.name ?? '',
+                                    widget.name,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 24,
@@ -286,7 +288,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     MaterialPageRoute(
                                                                       builder:
                                                                           (context) =>
-                                                                              const TempCreateGrafics(),
+                                                                               TempCreateGrafics(id: widget.id),
                                                                     ),
                                                                   );
                                                                 },
@@ -372,7 +374,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     MaterialPageRoute(
                                                                       builder:
                                                                           (context) =>
-                                                                              const TempCreateGrafics(),
+                                                                               TempCreateGrafics(id: widget.id),
                                                                     ),
                                                                   );
                                                                 },
@@ -686,7 +688,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                       var box = await Hive.openBox(tokenBox);
                                                                                                       final token = box.get("token") as String?;
                                                                                                       final response = await http.put(
-                                                                                                        Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'),
+                                                                                                        Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'),
                                                                                                         headers: {
                                                                                                           'Authorization': 'Token $token',
                                                                                                           'Content-Type': 'application/json',
@@ -705,7 +707,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                       }
                                                                                                       Navigator.push(
                                                                                                         context,
-                                                                                                        MaterialPageRoute(builder: (context) => WebDashboard()),
+                                                                                                        MaterialPageRoute(builder: (context) => WebDashboard(id: widget.id, name:'')),
                                                                                                       );
                                                                                                     }
                                                                                                   },
@@ -766,7 +768,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           ),
                                                                                         ),
                                                                                         onPressed: () async {
-                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'));
+                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'));
                                                                                           if (response.statusCode == 204) {
                                                                                           } else {
                                                                                             print("could not delete graph");
@@ -775,7 +777,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           Navigator.push(
                                                                                             context,
                                                                                             MaterialPageRoute(
-                                                                                              builder: (context) => const WebDashboard(),
+                                                                                              builder: (context) =>  WebDashboard(id: widget.id, name:''),
                                                                                             ),
                                                                                           );
                                                                                         },
@@ -1046,7 +1048,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                           var box = await Hive.openBox(tokenBox);
                                                                                                           final token = box.get("token") as String?;
                                                                                                           final response = await http.put(
-                                                                                                            Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'),
+                                                                                                            Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'),
                                                                                                             headers: {
                                                                                                               'Authorization': 'Token $token',
                                                                                                               'Content-Type': 'application/json',
@@ -1065,7 +1067,8 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                           }
                                                                                                           Navigator.push(
                                                                                                             context,
-                                                                                                            MaterialPageRoute(builder: (context) => WebDashboard()),
+                                                                                                            MaterialPageRoute(builder: (context) => WebDashboard(id: widget.id, name: ''),
+                                                                                                            )
                                                                                                           );
                                                                                                         }
                                                                                                       },
@@ -1126,7 +1129,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           ),
                                                                                         ),
                                                                                         onPressed: () async {
-                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${project.id}/'));
+                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'));
                                                                                           if (response.statusCode == 204) {
                                                                                           } else {
                                                                                             print("could not delete graph");
@@ -1135,7 +1138,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           Navigator.push(
                                                                                             context,
                                                                                             MaterialPageRoute(
-                                                                                              builder: (context) => const WebDashboard(),
+                                                                                              builder: (context) =>  WebDashboard(id: widget.id, name:''),
                                                                                             ),
                                                                                           );
                                                                                         },

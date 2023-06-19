@@ -7,8 +7,9 @@ import '../constants.dart';
 
 //esto es un device
 class NewDevice extends StatefulWidget {
-  const NewDevice({Key? key}) : super(key: key);
-//Propiedad de Girardot
+  final int id;
+  const NewDevice({Key? key, required this.id}) : super(key: key);
+
   @override
   _NewDeviceState createState() => _NewDeviceState();
 }
@@ -55,10 +56,8 @@ class _NewDeviceState extends State<NewDevice> {
   }
 
   Future<void> _getDevices() async {
-    var box = await Hive.openBox(tokenBox);
-    final token = box.get("token") as String?;
-    final url = Uri.parse('http://127.0.0.1:8000/user/devices/');
-    final response = await http.get(url, headers: {'Authorization': 'Token $token'},);
+    final url = Uri.parse('http://127.0.0.1:8000/user/project/${widget.id}/devices/');
+    final response = await http.get(url,);
 
     if (response.statusCode == 200) {
       setState(() {
@@ -73,7 +72,7 @@ class _NewDeviceState extends State<NewDevice> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     if (_deviceNameController.text.isNotEmpty) {
-      final url = Uri.parse('http://127.0.0.1:8000/user/devices/');
+      final url = Uri.parse('http://127.0.0.1:8000/user/project/${widget.id}/devices/');
 
       String? templateId;
 

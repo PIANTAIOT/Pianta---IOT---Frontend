@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:pianta/Home/model_proyect.dart';
 import 'package:pianta/MyDevices/Dashboard.dart';
 import 'package:http/http.dart' as http;
 import '../Home/graphics_model.dart';
@@ -60,7 +61,8 @@ class Sensor {
 }
 
 class VirtualPinDatastream extends StatefulWidget {
-  const VirtualPinDatastream({Key? key}) : super(key: key);
+  final int id;
+  const VirtualPinDatastream({Key? key, required this.id}) : super(key: key);
 
   @override
   State<VirtualPinDatastream> createState() => _VirtualPinDatastreamState();
@@ -69,6 +71,8 @@ class VirtualPinDatastream extends StatefulWidget {
 class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
   final graphicstemplate = graphics = [];
   late Future<List<GrapchisTemplate>> futureGraphics;
+
+
 
 
   final _formKey = GlobalKey<FormState>();
@@ -94,6 +98,7 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
 void initState() {
   super.initState();
   futureGraphics = fetchGraphics();
+  futureProjects = fetchProjects();
 }
   void _navigateToApi() {
     if (_selectedValue != null) {
@@ -141,10 +146,31 @@ void initState() {
   final TextEditingController nameGraphicscontroller = TextEditingController();
   final TextEditingController aliasgraphicscontroller = TextEditingController();
 
-  Future<dynamic> crearGrafico(BuildContext context) async {
+  Future<List<ProjectTemplate>> fetchProjects() async {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
+    final response =
+    await http.get(Uri.parse('http://127.0.0.1:8000/user/template/'),headers: {'Authorization': 'Token $token'},);
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      final List<ProjectTemplate> projects =
+      jsonList.map((json) => ProjectTemplate.fromJson(json)).toList();
+      //esto refresca el proyecto para ver los cambios
+      //await refreshProjects();
+      return projects;
+    } else {
+      throw Exception('Failed to load project list');
+    }
+  }
 
+
+  final projects = templateprojects = [];
+  late Future<List<ProjectTemplate>> futureProjects;
+  ProjectTemplate? project;
+
+
+  Future<dynamic> crearGrafico(BuildContext context) async {
+    await fetchProjects();
     final prefs = await SharedPreferences.getInstance();
     final storedTitle = prefs.getString('title');
     final storedName = prefs.getString('name');
@@ -159,7 +185,7 @@ void initState() {
     print(storedIsCircular);
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/user/graphics/'),
+        Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/'),
         body: {
           'titlegraphics': storedTitle,
           'namegraphics': storedName,
@@ -167,7 +193,7 @@ void initState() {
           'location': storedLocation,
           'is_circular': storedIsCircular.toString(),
         },
-        headers: {'Authorization': 'Token $token'},
+
       );
       if (response.statusCode == 201) {
         // El gráfico fue creado exitosamente
@@ -178,7 +204,7 @@ void initState() {
         // El request falló
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('An error occurred while creating the graphics')),
+              content: Text('An error occurred while creating the graphics${response.body}')),
         );
       }
     } catch (e) {
@@ -211,11 +237,10 @@ void initState() {
 
 
   Future<List<GrapchisTemplate>> fetchGraphics() async {
-    var box = await Hive.openBox(tokenBox);
-    final token = box.get("token") as String?;
+
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/'),
-      headers: {'Authorization': 'Token $token'},
+      Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/'),
+
     );
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
@@ -424,7 +449,7 @@ void initState() {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                        const WebDashboard(),
+                                         WebDashboard(id: widget.id, name:''),
                                       ),
                                     );
                                   },

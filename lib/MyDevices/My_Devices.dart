@@ -26,7 +26,8 @@ class Devices {
 }
 
 class MyDevice extends StatefulWidget {
-  const MyDevice({Key? key}) : super(key: key);
+  final int id;
+  const MyDevice({Key? key, required this.id}) : super(key: key);
 
   @override
   State<MyDevice> createState() => _MyDeviceState();
@@ -41,8 +42,7 @@ class _MyDeviceState extends State<MyDevice> {
     _getDevices();
   }
   void _deleteDevice(int id) async {
-    var box = await Hive.openBox(tokenBox);
-    final token = box.get("token") as String?;
+
     bool confirm = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -63,8 +63,7 @@ class _MyDeviceState extends State<MyDevice> {
       },
     );
     if (confirm == true) {
-      final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/devices/$id/'),
-        headers: {'Authorization': 'Token $token'},
+      final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/devices/$id/${widget.id}/'),
       );
 
       if (response.statusCode == 200) {
@@ -83,7 +82,7 @@ class _MyDeviceState extends State<MyDevice> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response =
-    await http.get(Uri.parse('http://127.0.0.1:8000/user/devices/'),
+    await http.get(Uri.parse('http://127.0.0.1:8000/user/project/${widget.id}/devices/'),
       headers: {'Authorization': 'Token $token'},);
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
@@ -147,8 +146,8 @@ class _MyDeviceState extends State<MyDevice> {
                                           width: MediaQuery.of(context).size.width * 0.7,
                                           height: MediaQuery.of(context).size.height * 0.9,
                                           child: Column(
-                                            children: const [
-                                              Expanded(child: NewDevice()),
+                                            children:  [
+                                              Expanded(child: NewDevice(id: widget.id)),
                                             ],
                                           )
                                       ),

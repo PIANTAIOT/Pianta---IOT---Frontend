@@ -366,7 +366,7 @@ class _ProyectosState extends State<Proyectos> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (context) => MyDevice()),
+                                              builder: (context) => MyDevice(id: project.id)),
                                         );
                                       },
                                     ),

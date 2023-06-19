@@ -393,7 +393,7 @@ class _open_projectState extends State<open_project> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (context) => const MyDevice()),
+                                              builder: (context) =>  MyDevice(id: project.id)),
                                         );
                                       },
                                     ),

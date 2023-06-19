@@ -22,9 +22,10 @@ class Templates extends StatefulWidget {
 
 class _TemplatesState extends State<Templates> {
   late final VoidCallback onDelete;
-  final project = templateprojects = [];
+
   late Future<List<ProjectTemplate>> futureProjects;
   final projectListKey = GlobalKey<_TemplatesState>();
+  ProjectTemplate? project;
   late String idrandomValue; // nuevo
 
   @override
@@ -351,7 +352,7 @@ class Dashboard extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                      const WebDashboard(),
+                                       WebDashboard(id: project.id, name: project.name),
                                     ),
                                   );
                                 },

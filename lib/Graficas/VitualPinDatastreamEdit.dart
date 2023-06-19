@@ -310,7 +310,7 @@ class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                        const WebDashboard(),
+                                        const WebDashboard(id: 3, name:''),
                                       ),
                                     );
                                   },

@@ -4,7 +4,8 @@ import 'package:pianta/Graficas/VitualPinDatastream.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TempCreateGrafics extends StatefulWidget {
-  const TempCreateGrafics({Key? key}) : super(key: key);
+  final int id;
+  const TempCreateGrafics({Key? key, required this.id}) : super(key: key);
 
   @override
   State<TempCreateGrafics> createState() => _TempCreateGraficsState();
@@ -121,7 +122,7 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => VirtualPinDatastream(),
+                                    builder: (context) => VirtualPinDatastream(id: widget.id,),
                                   ),
                                 );
                               }
