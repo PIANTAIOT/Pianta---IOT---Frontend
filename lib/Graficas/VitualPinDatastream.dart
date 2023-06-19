@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:pianta/Home/model_proyect.dart';
 import 'package:pianta/MyDevices/Dashboard.dart';
@@ -167,6 +168,7 @@ void initState() {
   final projects = templateprojects = [];
   late Future<List<ProjectTemplate>> futureProjects;
   ProjectTemplate? project;
+  Color _selectedColor = Colors.blue;
 
 
   Future<dynamic> crearGrafico(BuildContext context) async {
@@ -192,6 +194,7 @@ void initState() {
           'aliasgraphics': storedAlias,
           'location': storedLocation,
           'is_circular': storedIsCircular.toString(),
+          'color':_selectedColor.toString()
         },
 
       );
@@ -348,36 +351,109 @@ void initState() {
                             Row(
                               children: [
                                 Flexible(
-                                    flex: 1,
-                                    child: Column(
+                                  flex: 1,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 18.0),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Elegir PIN',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.0,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16.0),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16.0),
+                                      DropdownButtonFormField<String>(
+                                        value: _selectedValue,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedValue = value;
+                                          });
+                                        },
+                                        items: _vValues
+                                            .map<DropdownMenuItem<String>>((value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 16.0),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 15),
+                                    Row(
                                       children: [
-                                        const SizedBox(height: 18.0),
-                                        const Text(
-                                          'PIN',
+                                        Text(
+                                          'Elegir color',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14.0,
                                           ),
                                         ),
-                                        const SizedBox(height: 16.0),
-                                        DropdownButtonFormField<String>(
-                                          value: _selectedValue,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _selectedValue = value;
-                                            });
-                                          },
-                                          items: _vValues
-                                              .map<DropdownMenuItem<String>>(
-                                                  (value) {
-                                                return DropdownMenuItem<String>(
-                                                  value: value,
-                                                  child: Text(value),
-                                                );
-                                              }).toList(),
-                                        ),
+                                        const SizedBox(width: 16.0),
                                       ],
-                                    )),
+                                    ),
+                                    const SizedBox(height: 16.0),
+                                    GestureDetector(
+                                      onTap: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('Seleccione un color'),
+                                              content: SingleChildScrollView(
+                                                child: ColorPicker(
+                                                  pickerColor: _selectedColor,
+                                                  onColorChanged: (color) {
+                                                    setState(() {
+                                                      _selectedColor = color;
+                                                    });
+                                                  },
+                                                  showLabel: true,
+                                                  pickerAreaHeightPercent: 0.8,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  child: const Text('OK'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                      child: Container(
+                                        height: 36.0,
+                                        width: 36.0,
+                                        decoration: BoxDecoration(
+                                          color: _selectedColor,
+                                          shape: BoxShape.rectangle, // Cambio de BoxShape.circle a BoxShape.rectangle
+                                          borderRadius: BorderRadius.circular(4.0), // Agregar bordes redondeados al cuadro
+                                        ),
+                                        child: _selectedColor == Colors.transparent
+                                            ? Icon(
+                                          Icons.color_lens,
+                                          color: Colors.white,
+                                        )
+                                            : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                             Row(
@@ -406,7 +482,7 @@ void initState() {
                                                   context,
                                                   MaterialPageRoute(
                                                       builder: (context) =>
-                                                          MapSensor())).then(
+                                                          MapSensor(_selectedColor))).then(
                                                       (value) =>
                                                   {updateLocation(value)});
                                             },

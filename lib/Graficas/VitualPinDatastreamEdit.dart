@@ -72,7 +72,7 @@ class VirtualPinDatastreamEdit extends StatefulWidget {
 class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
   final graphicstemplate = graphics = [];
   late Future<List<GrapchisTemplate>> futureGraphics;
-
+  Color _selectedColor = Colors.blue;
 
   final _locationController = TextEditingController();
   String? _selectedValue;
@@ -285,7 +285,7 @@ class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
                                                   context,
                                                   MaterialPageRoute(
                                                       builder: (context) =>
-                                                          MapSensor())).then(
+                                                          MapSensor(_selectedColor))).then(
                                                       (value) =>
                                                   {updateLocation(value)});
                                             },

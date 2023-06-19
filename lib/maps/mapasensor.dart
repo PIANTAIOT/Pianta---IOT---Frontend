@@ -13,6 +13,10 @@ const MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoiZGFuaWVsc2cxOCIsImEiOiJjbGZ1N3F6ZWcwNDByM2Vtamo1OTNoc3hrIn0.5dFY3xEDB7oLtMbCWDdW9A';
 
 class MapSensor extends StatefulWidget {
+
+  final Color selectedColor;
+
+  MapSensor(this.selectedColor);
   @override
   _MapSensorState createState() => _MapSensorState();
 }
@@ -219,7 +223,7 @@ class _MapSensorState extends State<MapSensor> {
             point: location,
             builder: (ctx) => Container(
               child: Icon(Icons.location_pin,
-                  color: Color.fromARGB(255, 252, 247, 0)),
+                  color:widget.selectedColor),
             ),
           ),
         );
