@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' as geolocator;
+
+
+
 import 'dart:math';
 
 import '../Funciones/constantes.dart';
@@ -30,178 +36,209 @@ double distanceBetween(LatLng latLng1, LatLng latLng2) {
 const MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoiZGFuaWVsc2cxOCIsImEiOiJjbGZ1N3F6ZWcwNDByM2Vtamo1OTNoc3hrIn0.5dFY3xEDB7oLtMbCWDdW9A';
 
+
 class _LocalizationState extends State<Localization> {
   final MapController mapController = MapController();
   List<LatLng> polylineCoordinates = [];
   bool canAddPolylines = true;
   bool isAddingPolylines = false;
-  LatLng initialCoordinate = LatLng(37.42796133580664, -122.085749655962);
   double circleRadius = 10.0;
   bool showCircle = true;
+  Position? currentLocation;
+  LatLng initialCoordinate = LatLng(0, 0); // Valor inicial temporal
+
+@override
+void initState() {
+  super.initState();
+  getLocation();
+}
+
+Future<void> getLocation() async {
+  geolocator.Position position = await geolocator.Geolocator.getCurrentPosition(
+    desiredAccuracy: geolocator.LocationAccuracy.high,
+  );
+
+  setState(() {
+    currentLocation = position;
+    initialCoordinate = LatLng(
+      currentLocation!.latitude,
+      currentLocation!.longitude,
+    );
+    mapController.move(
+      initialCoordinate,
+      13.0,
+    );
+  });
+}
+
+
   @override
   Widget build(BuildContext context) {
+    String polylineString = polylineCoordinates
+        .map((point) => '${point.latitude},${point.longitude}')
+        .join('|');
     return Scaffold(
-      //se tomara una columna Para el resto de la pantalla a parte de la navbar llamada en (Home)
-        body: Row(
-          children: [
-            const SizedBox(
-              width: 100,
-              child: Navigation(title: 'nav', selectedIndex: 0),
-            ),
-            Expanded(
-                child: Column(children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text(
-                          'Location',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                        ),
-                      ), //fin modulo
-                      const SizedBox(height: 35),
-                      IconButton(
-                          onPressed: () {
-                            Navigator.pop(
-                                context, 'Valor enviado a la página anterior');
-                          },
-                          icon: const Icon(Icons.exit_to_app))
-                    ],
-                  ),
-                  const Divider(
-                    color: Colors.black26, //color of divider
-                    height: 2, //height spacing of divider
-                    thickness: 1, //thickness of divier line
-                    indent: 15, //spacing at the start of divider
-                    endIndent: 0, //spacing at the end of divider
-                  ),
-                  Expanded(
-                    child: FlutterMap(
-                      mapController: mapController,
-                      options: MapOptions(
-                        onTap: (point, latLng) {
-                          if (canAddPolylines && isAddingPolylines) {
-                            setState(() {
-                              if (polylineCoordinates.isEmpty) {
-                                initialCoordinate = latLng;
-                                polylineCoordinates.add(latLng);
-                              } else {
-                                polylineCoordinates.add(latLng);
-                                double distance =
-                                distanceBetween(latLng, initialCoordinate);
-                                if (distance < circleRadius * 1) {
-                                  polylineCoordinates.add(initialCoordinate);
-                                  canAddPolylines = false;
-                                  isAddingPolylines = false;
+      body: Row(
+        children: [
+          const SizedBox(
+            width: 100,
+            child: Navigation(title: 'nav', selectedIndex: 0),
+          ),
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        'Location',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                      ),
+                    ),
+                    const SizedBox(height: 35),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context, 'Valor enviado a la página anterior');
+                      },
+                      icon: const Icon(Icons.exit_to_app),
+                    )
+                  ],
+                ),
+                const Divider(
+                  color: Colors.black26,
+                  height: 2,
+                  thickness: 1,
+                  indent: 15,
+                  endIndent: 0,
+                ),
+                Expanded(
+                  child: FlutterMap(
+                    mapController: mapController,
+                    options: MapOptions(
+                      onTap: (point, latLng) {
+                        if (canAddPolylines && isAddingPolylines) {
+                          setState(() {
+                            if (polylineCoordinates.isEmpty) {
+                              initialCoordinate = latLng;
+                              polylineCoordinates.add(latLng);
+                            } else {
+                              polylineCoordinates.add(latLng);
+                              double distance = distanceBetween(latLng, initialCoordinate);
+                              if (distance < circleRadius * 1) {
+                                polylineCoordinates.add(initialCoordinate);
+                                canAddPolylines = false;
+                                isAddingPolylines = false;
 
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: const Text('¿Desea guardar la ubicación?'),
-                                      actions: [
-                                        TextButton(
-                                          child: const Text('No'),
-                                          onPressed: () {
-                                            setState(() {
-                                              polylineCoordinates.clear();
-                                              canAddPolylines = true;
-                                              isAddingPolylines = true;
-                                            });
-                                            Navigator.pop(context);
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: const Text('Sí'),
-                                          onPressed: () {
-                                            print('Coordenadas de la polilínea:');
-                                            for (var coordinate
-                                            in polylineCoordinates) {
-                                              print(
-                                                  '${coordinate.latitude}, ${coordinate.longitude}');
-                                            }
-                                            Navigator.pop(context);
-                                            Navigator.pop(context);
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text('¿Desea guardar la ubicación?'),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text('No'),
+                                        onPressed: () {
+                                          setState(() {
+                                            polylineCoordinates.clear();
+                                            canAddPolylines = true;
+                                            isAddingPolylines = true;
+                                          });
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: const Text('Sí'),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          Navigator.pop(context, polylineString);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
                               }
-                            });
-                          }
+                            }
+                          });
+                        }
+                      },
+                    ),
+                    nonRotatedChildren: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+                        additionalOptions: const {
+                          'accessToken': MAPBOX_ACCESS_TOKEN,
+                          'id': 'mapbox/satellite-v9',
                         },
                       ),
-                      nonRotatedChildren: [
-                        TileLayer(
-                          urlTemplate:
-                          'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
-                          additionalOptions: const {
-                            'accessToken': MAPBOX_ACCESS_TOKEN,
-                            'id': 'mapbox/satellite-v9'
-                          },
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              width: circleRadius * 2,
-                              height: circleRadius * 2,
-                              point: initialCoordinate,
-                              builder: (ctx) => Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.blue.withOpacity(0.5),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        PolylineLayer(
-                          polylines: [
-                            Polyline(
-                              points: polylineCoordinates,
-                              strokeWidth: 4.0,
-                              color: Colors.blue,
-                            ),
-                          ],
-                        ),
-                        Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                color: Color.fromARGB(255, 58, 57, 57),
-                                child: Ink(
-                                  decoration: ShapeDecoration(
-                                    color: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  child: IconButton(
-                                    icon: Icon(Icons.polyline_rounded),
-                                    color: Colors.white,
-                                    onPressed: () {
-                                      // OnPressed Logic
-                                      setState(() {
-                                        canAddPolylines = true;
-                                        isAddingPolylines = true;
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
+                      if (currentLocation != null)
+                       MarkerLayer(
+  markers: [
+    Marker(
+      width: circleRadius * 2,
+      height: circleRadius * 2,
+      point: LatLng(
+        currentLocation!.latitude,
+        currentLocation!.longitude,
+      ),
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.blue.withOpacity(0.5),
+        ),
+      ),
+    ),
+  ],
+),
+
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: polylineCoordinates,
+                            strokeWidth: 4.0,
+                            color: Colors.blue,
                           ),
+                        ],
+                      ),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: const Color.fromARGB(255, 58, 57, 57),
+                              child: Ink(
+                                decoration: ShapeDecoration(
+                                  color: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.polyline_rounded),
+                                  color: Colors.white,
+                                  onPressed: () {
+                                    setState(() {
+                                      canAddPolylines = true;
+                                      isAddingPolylines = true;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ]))
-          ],
-        ));
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

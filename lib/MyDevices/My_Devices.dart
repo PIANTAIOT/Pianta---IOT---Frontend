@@ -5,9 +5,10 @@ import 'package:pianta/MyDevices/DeviceGrafics.dart';
 import 'dart:convert';
 import 'package:pianta/MyDevices/New_Devices.dart';
 import 'package:pianta/Funciones/constantes.dart';
+import '../maps/mapavisualizar.dart';
 
 import '../constants.dart';
-//propiedad de Juan Sebastian Girardot Antonio
+
 
 class Devices {
   final int id;
@@ -224,7 +225,22 @@ class _MyDeviceState extends State<MyDevice> {
                   ),
                 ],
               )
-          )// segundo widget
+          ),
+          ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(70, 20),
+                backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
+              ),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ViewLocalization()));
+              },
+              icon: const Icon(
+                Icons.location_on,
+                color: Colors.white,
+              ),
+              label: const Text('Location',
+                  style: TextStyle(fontSize: 12))),// segundo widget// segundo widget
         ],
       ),
 
