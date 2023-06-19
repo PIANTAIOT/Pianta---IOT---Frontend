@@ -345,30 +345,32 @@ class _ProyectosState extends State<Proyectos> {
                                   children: [
                                     Container(
                                       padding: new EdgeInsets.all(0),
-                                      height: 100,
+                                      height: 130,
                                       decoration: new BoxDecoration(
                                         border:
-                                            new Border.all(color: Colors.white),
+                                            new Border.all(color: Colors.black12),
                                         color: Colors.white,
                                       ),
-                                    ),
-                                    ListTile(
-                                      title: Text(
-                                        project.name,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
+                                      child: Center(
+                                        child: ListTile(
+                                          title: Text(
+                                            project.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          onTap: () {
+                                            // Navegar a la pantalla de detalles del proyecto
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) => MyDevice(id: project.id)),
+                                            );
+                                          },
                                         ),
-                                        textAlign: TextAlign.center,
                                       ),
-                                      onTap: () {
-                                        // Navegar a la pantalla de detalles del proyecto
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => MyDevice(id: project.id)),
-                                        );
-                                      },
                                     ),
                                     Align(
                                       alignment: Alignment.bottomRight,
@@ -377,7 +379,7 @@ class _ProyectosState extends State<Proyectos> {
                                         MainAxisAlignment.spaceBetween,
                                         children: [
                                           IconButton(
-                                            icon: Icon(Icons.delete),
+                                            icon: Icon(Icons.delete, size: 30),
                                             onPressed: () async {
                                               bool confirmDelete =
                                               await showDialog(
@@ -498,7 +500,7 @@ class _ProyectosState extends State<Proyectos> {
                                             },
                                           ),
                                           IconButton(
-                                            icon: Icon(Icons.share),
+                                            icon: Icon(Icons.share, size: 30),
                                             onPressed: () {
                                               showDialog(
                                                 context: context,

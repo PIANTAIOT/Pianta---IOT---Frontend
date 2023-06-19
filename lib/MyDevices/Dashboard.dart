@@ -210,7 +210,7 @@ class _WebDashboardState extends State<WebDashboard>
                                         Flexible(
                                           fit: FlexFit.loose,
                                           child: Card(
-                                            elevation: 9,
+                                            elevation: 8,
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(1),
@@ -237,7 +237,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                             child: Text(
                                                               '0 °C',
                                                               style: TextStyle(
-                                                                  fontSize: 50),
+                                                                  fontSize: 30), //tamaño del numero de la circular al hacer la animacion de movimiento
                                                             ),
                                                           ),
                                                         ),
@@ -248,13 +248,13 @@ class _WebDashboardState extends State<WebDashboard>
                                                                 _animation
                                                                     .value),
                                                         child: const SizedBox(
-                                                          width: 250,
-                                                          height: 250,
+                                                          width: 200, //tamaño del recuadro de click en card principal
+                                                          height: 200, //tamaño del recuadro de click en card principal
                                                           child: Center(
                                                             child: Text(
                                                               '0 °C',
                                                               style: TextStyle(
-                                                                  fontSize: 50),
+                                                                  fontSize: 30), //tamaño de nuemro en card circular en la card principal de selección
                                                             ),
                                                           ),
                                                         ),
@@ -295,8 +295,8 @@ class _WebDashboardState extends State<WebDashboard>
                                                                 child: Card(
                                                                   child:
                                                                       SizedBox(
-                                                                    width: 250,
-                                                                    height: 250,
+                                                                    width: 250, //tamaño card que se duplica
+                                                                    height: 250, //tamaño card que se duplica
                                                                     child:
                                                                         Stack(
                                                                       children: [
@@ -308,12 +308,12 @@ class _WebDashboardState extends State<WebDashboard>
                                                                             child:
                                                                                 SizedBox(
                                                                               width: 200,
-                                                                              height: 200,
+                                                                              height: 500,
                                                                               child: Center(
                                                                                 child: Text(
                                                                                   '0 °C',
                                                                                   style: TextStyle(
-                                                                                    fontSize: 50,
+                                                                                    fontSize: 30, //tamaño del numero dentro de la grafica circular duplicada
                                                                                   ),
                                                                                 ),
                                                                               ),
@@ -340,8 +340,8 @@ class _WebDashboardState extends State<WebDashboard>
                                                         child: Linea_Graphics(),
                                                       ),
                                                       child: SizedBox(
-                                                        height: 200,
-                                                        width: 200,
+                                                        height: 180, //Tamaño de la grafica lineal en la card de eleccion pricipal
+                                                        width: 180, //Tamaño de la grafica lineal en la card de eleccion pricipal
                                                         child: Linea_Graphics(),
                                                       ),
                                                       childWhenDragging:
@@ -495,7 +495,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                 Text(
                                                                               '0 °C',
                                                                               style: TextStyle(
-                                                                                fontSize: 50,
+                                                                                fontSize: 30, //tamaño del numero dentro de la grafica circular en las card duplicadas
                                                                               ),
                                                                             ),
                                                                           ),
@@ -855,25 +855,20 @@ class _WebDashboardState extends State<WebDashboard>
                                                                       child:
                                                                           SizedBox(
                                                                         height:
-                                                                            200,
+                                                                            180, //tamaño de la grafica lineal en las card duplicadas
                                                                         width:
-                                                                            200,
+                                                                            180, //tamaño de la grafica lineal en las card duplicadas
                                                                         child:
                                                                             Linea_Graphics(),
                                                                       ),
                                                                     ),
                                                                     Text(
                                                                       title,
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                        fontSize:
-                                                                            20,
+                                                                      style: const TextStyle(
+                                                                        fontWeight: FontWeight.bold,
+                                                                        fontSize: 20,
                                                                       ),
-                                                                      textAlign:
-                                                                          TextAlign
-                                                                              .left,
+                                                                      textAlign: TextAlign.left,
                                                                     ),
                                                                     Positioned(
                                                                       top: 10,
@@ -1237,7 +1232,7 @@ class Circular_graphics extends CustomPainter {
       size.width / 2,
       size.height / 2,
     );
-    final radius = 70.0; //se cuadra el tamano del circulo
+    final radius = 60.0; //se cuadra el tamano del circulo
     canvas.drawCircle(center, radius, circlePaint);
 
     final animationArcPaint = Paint()
