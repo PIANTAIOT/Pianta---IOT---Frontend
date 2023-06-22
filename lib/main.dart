@@ -3,8 +3,9 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:pianta/Home/proyecto.dart';
 import 'package:pianta/api_login.dart';
 import 'package:pianta/constants.dart';
+import 'package:pianta/pantalla/pantalla.dart';
 import 'package:pianta/user_models.dart';
-import 'register/login.dart';  
+import 'register/login.dart';
 
 //import 'package:flutter_bloc/flutter_bloc.dart';
 //import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
        },
        */
 
-                    
+
       debugShowCheckedModeBanner: false,
       home: FutureBuilder<Box>(
         future: Hive.openBox(tokenBox),
@@ -52,20 +53,20 @@ class MyApp extends StatelessWidget {
                       //context.read<UserCubit>().emit(user);
                       return const Proyectos();
                     } else {
-                      return const Login();
+                      return  IntroScreenDefault();
                     }
                   } else {
-                    return const Login();
+                    return  IntroScreenDefault();
                   }
                 },
               );
             } else {
-              return const Login();
+              return  IntroScreenDefault();
             }
           } else if (snapshot.hasError) {
-            return const Login();
+            return  IntroScreenDefault();
           } else {
-            return const Login();
+            return  IntroScreenDefault();
           }
         },
       ),
