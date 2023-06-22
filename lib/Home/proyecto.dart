@@ -315,7 +315,7 @@ class _ProyectosState extends State<Proyectos> {
                 child: FutureBuilder<List<Project>>(
                   future: futureProjects,
                   builder: (context, snapshot) {
-                    if (snapshot.hasData) {//hola
+                    if (snapshot.hasData) {//hola hjhjghfgdgdsssdd
                        projects = snapshot.data!;
                       return GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
