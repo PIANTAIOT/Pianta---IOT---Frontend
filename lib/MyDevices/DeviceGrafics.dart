@@ -3,10 +3,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
+import 'package:pianta/Home/template_model.dart';
 import 'dart:math';
 
 import '../Funciones/constantes.dart';
+import '../Home/graphics_model.dart';
+import '../constants.dart';
+import 'Dashboard.dart';
 
 //ignore: camel_case_types
 //grafica circular
@@ -35,10 +40,12 @@ class Device {
   int id;
   final String name;
   final String location;
+  final String template;
   Device({
     required this.id,
     required this.name,
     required this.location,
+    required this.template,
   });
 
   factory Device.fromJson(Map<String, dynamic> json) {
@@ -46,6 +53,7 @@ class Device {
       id: json['id'],
       name: json['name'],
       location: json['location'],
+      template: json['template'],
     );
   }
 }
@@ -55,7 +63,9 @@ List<Device> devices = <Device>[];
 List<SensorData> device = [];
 
 class DeviceGrafics extends StatefulWidget {
-  const DeviceGrafics({super.key});
+  final String template;
+  final String nameTemplate;
+  const DeviceGrafics({required this.template, required this.nameTemplate, super.key});
 
   @override
   State<DeviceGrafics> createState() => _DeviceGraficsState();
@@ -74,7 +84,31 @@ class _DeviceGraficsState extends State<DeviceGrafics>
   SensorData? selectedDevice;
   Map<String, dynamic>? apiData;
   late Future<List<SensorData>> _fetchDevicesFuture;
+  List<Device> devices = <Device>[];
 
+
+  late Future<List<GrapchisTemplate>> futureGraphics;
+
+
+  Future<List<GrapchisTemplate>> fetchGraphics() async {
+    var box = await Hive.openBox(tokenBox);
+    final token = box.get("token") as String?;
+
+    final response = await http.get(
+      Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.template}/'),
+      headers: {'Authorization': 'Token $token'},
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      final List<GrapchisTemplate> projects =
+      jsonList.map((json) => GrapchisTemplate.fromJson(json)).toList();
+      //esto refresca el proyecto para ver los cambios
+      //await refreshProjects();
+      return projects;
+    } else {
+      throw Exception('Failed to load project list');
+    }
+  }
   Future<void> _fetchData() async {
     try {
       final response = await http
@@ -122,11 +156,12 @@ class _DeviceGraficsState extends State<DeviceGrafics>
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 3000));
     _animation =
-    Tween<double>(begin: 0, end: maxProgress).animate(_animationController)
-      ..addListener(() {
-        setState(() {});
-      });
+        Tween<double>(begin: 0, end: maxProgress).animate(_animationController)
+          ..addListener(() {
+            setState(() {});
+          });
     _fetchData();
+    futureGraphics = fetchGraphics();
     _fetchDevicesFuture = fetchDevices();
     super.initState();
 
@@ -135,8 +170,7 @@ class _DeviceGraficsState extends State<DeviceGrafics>
       setState(() {
         _fetchDevicesFuture = fetchDevices();
       });
-    })
-    ;
+    });
   }
 
   @override
@@ -152,99 +186,196 @@ class _DeviceGraficsState extends State<DeviceGrafics>
         child: Scaffold(
             body: Container(
                 child: Row(children: [
-                  const SizedBox(
-                    width: 100,
-                    child: Navigation(title: 'nav', selectedIndex: 0),
+      const SizedBox(
+        width: 100,
+        child: Navigation(title: 'nav', selectedIndex: 0),
+      ),
+      Expanded(
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Tooltip(
+                          message: 'Return to the previous page',
+                          child: IconButton(
+                            onPressed: () {
+                              Navigator.pop(context, 'Value page previous');
+                            },
+                            icon: const Icon(Icons.exit_to_app),
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        'Graphics ',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 30),
+                      ),
+
+                       Text(
+                        'Name Template:  ${widget.nameTemplate}',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 30),
+                      ),
+
+                    ],
                   ),
-                  Expanded(
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Text(
-                                'Graphics',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                              ),
-                            ), //fin modulo
-                            SizedBox(height: 35),
-                          ],
+                ), //fin modulo
+                SizedBox(height: 35),
+              ],
+            ),
+            const Divider(
+              color: Colors.black26,
+              height: 2,
+              thickness: 1,
+              indent: 15,
+              endIndent: 0,
+            ),
+            Expanded(
+              child: Card(
+                child: FutureBuilder<
+                    List<GrapchisTemplate>>(
+                  future: futureGraphics,
+                  builder: (context, snapshot) {
+                    final _formKey =
+                    GlobalKey<FormState>();
+                    if (snapshot.hasData) {
+                      final projects =
+                      snapshot.data!;
+                      return GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // Número de columnas en el GridView
+                          childAspectRatio: 950 / 400, // Relación de aspecto para controlar el tamaño de las celdas
                         ),
-                        const Divider(
-                          color: Colors.black26,
-                          height: 2,
-                          thickness: 1,
-                          indent: 15,
-                          endIndent: 0,
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                const ListTile(
-                                  leading: Icon(Icons.person_2_outlined, size: 100),
-                                ),
-                                Text(
-                                  selectedDevice != null ? selectedDevice!.name : 'No device selected',
-                                  style: TextStyle(fontSize: 40),
-                                ),
-                                SizedBox(
-                                  height: 400,
-                                  width: 950,
-                                  child: Card(
-                                    elevation: 4,
-                                    child: Container(
-                                      padding: EdgeInsets.all(16.0),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
+                        itemCount: projects.length,
+                        itemBuilder:
+                            (BuildContext context,
+                            int index) {
+                          final project = projects[index];
+                          final title = project.titlegraphics;
+                          if (project.is_circular ==
+                              true) {
+                            return Container(
+                              height: 1200,
+                              child:
+                              GestureDetector(
+                                child: Card(
+                                  child: SizedBox(
+                                    width: 250,
+                                    height: 250,
+                                    child: Stack(
+                                      children: [
+                                        Center(
+                                          child:
                                           CustomPaint(
-                                            painter: CircularGraphicsPainter(
-                                                lastData?.v12 ?? 0.0),
-                                            child: SizedBox(
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  if (_animationController.value ==
-                                                      maxProgress) {
-                                                    _animationController.reverse();
-                                                  } else {
-                                                    _animationController.forward();
-                                                  }
-                                                },
-                                                child: Center(
-                                                  child: lastData == null
-                                                      ? const Text('No data available')
-                                                      : Text(
-                                                    '${lastData.v12} °C',
-                                                    style:
-                                                    const TextStyle(fontSize: 50),
+                                            painter:
+                                            Circular_graphics(_animation.value),
+                                            child:
+                                            SizedBox(
+                                              width:
+                                              200,
+                                              height:
+                                              200,
+                                              child:
+                                              Center(
+                                                child:
+                                                Text(
+                                                  '0 °C',
+                                                  style: TextStyle(
+                                                    fontSize: 50,
                                                   ),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(
-                                            height: 300.0,
-                                            width: 300.0,
-                                            child: Linea_Graphics(),
+                                        ),
+                                        Text(
+                                          title,
+                                          style:
+                                          TextStyle(
+                                            fontWeight:
+                                            FontWeight.bold,
+                                            fontSize:
+                                            25,
                                           ),
-                                        ],
-                                      ),
+                                          textAlign:
+                                          TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ]))));
+                              ),
+                            );
+                          } else {
+                            return Container(
+                              height: 1200,
+                              child:
+                              GestureDetector(
+
+                                child: Card(
+                                  child: SizedBox(
+                                    width: 250,
+                                    height: 250,
+                                    child: Stack(
+                                      children: [
+                                        Center(
+                                          child:
+                                          SizedBox(
+                                            height:
+                                            200,
+                                            width:
+                                            200,
+                                            child:
+                                            Linea_Graphics(),
+                                          ),
+                                        ),
+                                        Text(
+                                          title,
+                                          style:
+                                           TextStyle(
+                                            fontWeight:
+                                            FontWeight.bold,
+                                            fontSize:
+                                            25,
+                                          ),
+                                          textAlign:
+                                          TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text(
+                          "${snapshot.error}");
+                    }
+                    // By default, show a loading spinner
+                    return const Center(
+                        child:
+                        CircularProgressIndicator());
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ]))));
   }
 }
 
@@ -294,8 +425,8 @@ class CircularGraphicsPainter extends CustomPainter {
 }
 
 //grafica dias. lineal
-class Linea_Graphics extends StatelessWidget {
-  const Linea_Graphics({Key? key}) : super(key: key);
+class Linea_Graphicss extends StatelessWidget {
+  const Linea_Graphicss({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -310,9 +441,9 @@ class Linea_Graphics extends StatelessWidget {
               data: data,
               domainFn: (SensorData sensorData, _) => sensorData.createdAt,
               measureFn: (SensorData sensorData, _) => sensorData.v12,
-              colorFn: (_,__) => charts.MaterialPalette.blue.shadeDefault,
+              colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
               labelAccessorFn: (SensorData sensorData, _) =>
-              '${sensorData.createdAt}: ${sensorData.v12}',
+                  '${sensorData.createdAt}: ${sensorData.v12}',
             ),
           ];
           final chart = charts.TimeSeriesChart(
@@ -338,7 +469,7 @@ Future<List<SensorData>> fetchSensorData() async {
   if (response.statusCode == 200) {
     final jsonData = json.decode(response.body);
     final sensorDataList =
-    List<SensorData>.from(jsonData.map((x) => SensorData.fromJson(x)));
+        List<SensorData>.from(jsonData.map((x) => SensorData.fromJson(x)));
     return sensorDataList;
   } else {
     throw Exception('Failed to load sensor data');

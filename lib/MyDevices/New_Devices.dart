@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../maps/mapadevice.dart';
 
 import '../constants.dart';
+import 'DeviceGrafics.dart';
 
 //esto es un device
 class NewDevice extends StatefulWidget {
@@ -84,17 +85,15 @@ class _NewDeviceState extends State<NewDevice> {
 
       if (_selectedTemplate != null) {
         // Busca el template seleccionado en la lista de templates para obtener su ID
-        final selectedTemplate = _templates
-            .firstWhere((template) => template['name'] == _selectedTemplate);
+        final selectedTemplate = _templates.firstWhere((template) => template['name'] == _selectedTemplate);
         templateId = selectedTemplate['id'].toString();
       }
-
+      print(templateId);
       final response = await http.post(
         url,
         body: {
           'name': _deviceNameController.text,
-          'template':
-              templateId, // Incluye el ID del template seleccionado en el body
+          'template': templateId, // Incluye el ID del template seleccionado en el body
           'location': _locationController.text,
         },
         headers: {'Authorization': 'Token $token'},

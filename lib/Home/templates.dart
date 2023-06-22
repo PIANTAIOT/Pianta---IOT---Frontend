@@ -25,7 +25,6 @@ class _TemplatesState extends State<Templates> {
 
   late Future<List<ProjectTemplate>> futureProjects;
   final projectListKey = GlobalKey<_TemplatesState>();
-  ProjectTemplate? project;
   late String idrandomValue; // nuevo
 
   @override
@@ -39,12 +38,14 @@ class _TemplatesState extends State<Templates> {
   Future<List<ProjectTemplate>> fetchProjects() async {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
-    final response =
-    await http.get(Uri.parse('http://127.0.0.1:8000/user/template/'),headers: {'Authorization': 'Token $token'},);
+    final response = await http.get(
+      Uri.parse('http://127.0.0.1:8000/user/template/'),
+      headers: {'Authorization': 'Token $token'},
+    );
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       final List<ProjectTemplate> projects =
-      jsonList.map((json) => ProjectTemplate.fromJson(json)).toList();
+          jsonList.map((json) => ProjectTemplate.fromJson(json)).toList();
       //esto refresca el proyecto para ver los cambios
       //await refreshProjects();
       return projects;
@@ -70,79 +71,75 @@ class _TemplatesState extends State<Templates> {
             child: Navigation(
                 title: 'nav',
                 selectedIndex:
-                1 /* Fundamental SelectIndex para que funcione el selector*/),
+                    1 /* Fundamental SelectIndex para que funcione el selector*/),
           ),
           Expanded(
               child: Column(children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        'Template',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 30,
-                            color: Colors.black),
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              content: Container(
-                                  width:
-                                  MediaQuery.of(context).size.width * 0.7,
-                                  height:
-                                  MediaQuery.of(context).size.height * 0.9,
-                                  child: Column(
-                                    children: [
-                                      Expanded(child: CreateTemplate()),
-                                    ],
-                                  )),
-                            );
-                          },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    'Template',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                        color: Colors.black),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      )),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          content: Container(
+                              width: MediaQuery.of(context).size.width * 0.7,
+                              height: MediaQuery.of(context).size.height * 0.9,
+                              child: Column(
+                                children: [
+                                  Expanded(child: CreateTemplate()),
+                                ],
+                              )),
                         );
                       },
-                      child: Text(
-                        "+New Template",
-                        style: TextStyle(
-                          fontSize: 15,
-                        ),
-                      ),
+                    );
+                  },
+                  child: Text(
+                    "+New Template",
+                    style: TextStyle(
+                      fontSize: 15,
                     ),
-                  ],
+                  ),
                 ),
-                const Divider(
-                  color: Colors.black26, //color of divider
-                  height: 4, //height spacing of divider
-                  thickness: 1, //thickness of divier line
-                  indent: 15, //spacing at the start of divider
-                  endIndent: 0,
-                ),
-                Expanded(
-                  child: FutureBuilder<List<ProjectTemplate>>(
-                    future: futureProjects,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final projects = snapshot.data!;
-                        return GridView.builder(
-                          gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: MediaQuery.of(context).size.width >
-                                1200
-                                ? 5
-                                : MediaQuery.of(context).size.width > 800
+              ],
+            ),
+            const Divider(
+              color: Colors.black26, //color of divider
+              height: 4, //height spacing of divider
+              thickness: 1, //thickness of divier line
+              indent: 15, //spacing at the start of divider
+              endIndent: 0,
+            ),
+            Expanded(
+              child: FutureBuilder<List<ProjectTemplate>>(
+                future: futureProjects,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final projects = snapshot.data!;
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: MediaQuery.of(context).size.width > 1200
+                            ? 5
+                            : MediaQuery.of(context).size.width > 800
                                 ? 4
                                 : MediaQuery.of(context).size.width > 600
                                 ? 3
@@ -282,20 +279,22 @@ class _TemplatesState extends State<Templates> {
                                       ),
                                     ],
                                   ),
-                                ),
+                                ],
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         );
-                      } else if (snapshot.hasError) {
-                        return Text("${snapshot.error}");
-                      }
-                      // By default, show a loading spinner
-                      return Center(child: CircularProgressIndicator());
-                    },
-                  ),
-                )
-              ]))
+                      },
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text("${snapshot.error}");
+                  }
+                  // By default, show a loading spinner
+                  return Center(child: CircularProgressIndicator());
+                },
+              ),
+            )
+          ]))
         ]));
   }
 }
@@ -307,6 +306,7 @@ class Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController diaryTextEditingController = TextEditingController();
     return Scaffold(
       body: Row(
         children: [
@@ -315,7 +315,7 @@ class Dashboard extends StatelessWidget {
             child: Navigation(
               title: 'nav',
               selectedIndex:
-              1 /* Fundamental SelectIndex para que funcione el selector*/,
+                  1 /* Fundamental SelectIndex para que funcione el selector*/,
             ),
           ),
           Expanded(
@@ -352,8 +352,8 @@ class Dashboard extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                       WebDashboard(id: project.id, name: project.name),
+                                      builder: (context) => WebDashboard(
+                                          id: project.id, name: project.name),
                                     ),
                                   );
                                 },
@@ -445,6 +445,28 @@ class Dashboard extends StatelessWidget {
                             Text(
                               '${project.red}',
                               style: const TextStyle(fontSize: 24),
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Template Connection:',
+                              style: TextStyle(fontSize: 24),
+                            ),
+                             Text(
+                              'http://127.0.0.1:8000/user/api/DatosSensores/${project.id}/',
+                              style: TextStyle(fontSize: 24),
+                            ),
+                            IconButton(
+                              onPressed: () async {
+                                String textToCopy = 'http://127.0.0.1:8000/user/api/DatosSensores/${project.id}/';
+                                await Clipboard.setData(ClipboardData(text: textToCopy));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Text Copied'),
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.content_copy, color: Colors.black),
+                              color: Colors.blue,
                             ),
                             const SizedBox(height: 20),
                           ],

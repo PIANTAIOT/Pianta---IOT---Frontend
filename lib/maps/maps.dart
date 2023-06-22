@@ -5,8 +5,6 @@ import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
 
-
-
 import 'dart:math';
 
 import '../Funciones/constantes.dart';
@@ -36,7 +34,6 @@ double distanceBetween(LatLng latLng1, LatLng latLng2) {
 const MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoiZGFuaWVsc2cxOCIsImEiOiJjbGZ1N3F6ZWcwNDByM2Vtamo1OTNoc3hrIn0.5dFY3xEDB7oLtMbCWDdW9A';
 
-
 class _LocalizationState extends State<Localization> {
   final MapController mapController = MapController();
   List<LatLng> polylineCoordinates = [];
@@ -47,30 +44,30 @@ class _LocalizationState extends State<Localization> {
   Position? currentLocation;
   LatLng initialCoordinate = LatLng(0, 0); // Valor inicial temporal
 
-@override
-void initState() {
-  super.initState();
-  getLocation();
-}
+  @override
+  void initState() {
+    super.initState();
+    getLocation();
+  }
 
-Future<void> getLocation() async {
-  geolocator.Position position = await geolocator.Geolocator.getCurrentPosition(
-    desiredAccuracy: geolocator.LocationAccuracy.high,
-  );
-
-  setState(() {
-    currentLocation = position;
-    initialCoordinate = LatLng(
-      currentLocation!.latitude,
-      currentLocation!.longitude,
+  Future<void> getLocation() async {
+    geolocator.Position position =
+        await geolocator.Geolocator.getCurrentPosition(
+      desiredAccuracy: geolocator.LocationAccuracy.high,
     );
-    mapController.move(
-      initialCoordinate,
-      13.0,
-    );
-  });
-}
 
+    setState(() {
+      currentLocation = position;
+      initialCoordinate = LatLng(
+        currentLocation!.latitude,
+        currentLocation!.longitude,
+      );
+      mapController.move(
+        initialCoordinate,
+        13.0,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,13 +92,15 @@ Future<void> getLocation() async {
                       child: Text(
                         'Location',
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 30),
                       ),
                     ),
                     const SizedBox(height: 35),
                     IconButton(
                       onPressed: () {
-                        Navigator.pop(context, 'Valor enviado a la página anterior');
+                        Navigator.pop(
+                            context, 'Valor enviado a la página anterior');
                       },
                       icon: const Icon(Icons.exit_to_app),
                     )
@@ -126,7 +125,8 @@ Future<void> getLocation() async {
                               polylineCoordinates.add(latLng);
                             } else {
                               polylineCoordinates.add(latLng);
-                              double distance = distanceBetween(latLng, initialCoordinate);
+                              double distance =
+                                  distanceBetween(latLng, initialCoordinate);
                               if (distance < circleRadius * 1) {
                                 polylineCoordinates.add(initialCoordinate);
                                 canAddPolylines = false;
@@ -135,7 +135,8 @@ Future<void> getLocation() async {
                                 showDialog(
                                   context: context,
                                   builder: (_) => AlertDialog(
-                                    title: const Text('¿Desea guardar la ubicación?'),
+                                    title: const Text(
+                                        '¿Desea guardar la ubicación?'),
                                     actions: [
                                       TextButton(
                                         child: const Text('No'),
@@ -152,7 +153,8 @@ Future<void> getLocation() async {
                                         child: const Text('Sí'),
                                         onPressed: () {
                                           Navigator.pop(context);
-                                          Navigator.pop(context, polylineString);
+                                          Navigator.pop(
+                                              context, polylineString);
                                         },
                                       ),
                                     ],
@@ -174,25 +176,24 @@ Future<void> getLocation() async {
                         },
                       ),
                       if (currentLocation != null)
-                       MarkerLayer(
-  markers: [
-    Marker(
-      width: circleRadius * 2,
-      height: circleRadius * 2,
-      point: LatLng(
-        currentLocation!.latitude,
-        currentLocation!.longitude,
-      ),
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.blue.withOpacity(0.5),
-        ),
-      ),
-    ),
-  ],
-),
-
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              width: circleRadius * 2,
+                              height: circleRadius * 2,
+                              point: LatLng(
+                                currentLocation!.latitude,
+                                currentLocation!.longitude,
+                              ),
+                              builder: (ctx) => Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.blue.withOpacity(0.5),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       PolylineLayer(
                         polylines: [
                           Polyline(

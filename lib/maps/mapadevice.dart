@@ -46,7 +46,7 @@ class _MapScreenState extends State<MapScreen> {
       var box = await Hive.openBox(tokenBox);
       final token = box.get("token") as String?;
       final fetchedLocation = await getLocationes(token!);
-      setState(() {
+      setState((){
         locationes = fetchedLocation;
       });
 
