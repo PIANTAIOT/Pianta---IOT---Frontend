@@ -1,33 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
+import 'package:pianta/Home/graphics_model.dart';
+import 'package:pianta/Home/template_model.dart';
+import 'package:pianta/Home/templates.dart';
 import 'package:pianta/MyDevices/DeviceGrafics.dart';
 import 'dart:convert';
 import 'package:pianta/MyDevices/New_Devices.dart';
 import 'package:pianta/Funciones/constantes.dart';
 import '../maps/mapavisualizar.dart';
-
+import 'package:collection/collection.dart';
 import '../constants.dart';
 
 
 class Devices {
-  final int id;
+  int id;
   final String name;
   final String location;
-
-  Devices({required this.id, required this.name, required this.location});
+  final String template;
+  Devices({
+    required this.id,
+    required this.name,
+    required this.location,
+    required this.template,
+  });
 
   factory Devices.fromJson(Map<String, dynamic> json) {
     return Devices(
       id: json['id'],
       name: json['name'],
       location: json['location'],
+      template: json['template'],
     );
   }
 }
 
 class MyDevice extends StatefulWidget {
   final int id;
+
+
   const MyDevice({Key? key, required this.id}) : super(key: key);
 
   @override
@@ -36,14 +47,35 @@ class MyDevice extends StatefulWidget {
 
 class _MyDeviceState extends State<MyDevice> {
   List<Devices> _devices = [];
+  List<ProjectTemplate> _templates = [];
+  late Future<List<ProjectTemplate>> futureProjects;
+
+
 
   @override
   void initState() {
     super.initState();
     _getDevices();
+    futureProjects = fetchProjects();
+  }
+  Future<List<ProjectTemplate>> fetchProjects() async {
+    var box = await Hive.openBox(tokenBox);
+    final token = box.get("token") as String?;
+    final response = await http.get(
+      Uri.parse('http://127.0.0.1:8000/user/template/'),
+      headers: {'Authorization': 'Token $token'},
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      final List<ProjectTemplate> projects =
+      jsonList.map((json) => ProjectTemplate.fromJson(json)).toList();
+      _templates = projects; // Asignar el resultado a _templates
+      return projects;
+    } else {
+      throw Exception('Failed to load project list');
+    }
   }
   void _deleteDevice(int id) async {
-
     bool confirm = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -97,6 +129,7 @@ class _MyDeviceState extends State<MyDevice> {
       throw Exception('Failed to load devices');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +198,10 @@ class _MyDeviceState extends State<MyDevice> {
                                           'Please create a template before adding a device.'),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context),
+                                          onPressed: () => Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) => Templates())),
                                           child: const Text('OK'),
                                         )
                                       ],
@@ -211,10 +247,16 @@ class _MyDeviceState extends State<MyDevice> {
                                 },
                               ),
                               onTap: () {
+                                final selectedTemplate = _templates.firstWhereOrNull((template) => template.id.toString() == device.template);
+                                final templateName = selectedTemplate?.name ?? "Unknown Template";
+                                print('hola $selectedTemplate');
+                                print('device.template: ${device.template}');
+                                print('template.id: ${selectedTemplate?.id}');
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => DeviceGrafics()),
+                                      builder: (context) =>  DeviceGrafics(template: device.template, nameTemplate: templateName,)),
                                 );
                               },
                             ),

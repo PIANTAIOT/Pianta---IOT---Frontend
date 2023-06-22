@@ -245,6 +245,7 @@ void initState() {
       Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/'),
 
     );
+
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       final List<GrapchisTemplate> projects =

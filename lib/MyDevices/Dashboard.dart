@@ -288,7 +288,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     MaterialPageRoute(
                                                                       builder:
                                                                           (context) =>
-                                                                               TempCreateGrafics(id: widget.id),
+                                                                               TempCreateGrafics(id: widget.id,),
                                                                     ),
                                                                   );
                                                                 },
@@ -397,7 +397,7 @@ class _WebDashboardState extends State<WebDashboard>
                                           ),
                                         ),
                                         Expanded(
-                                          child: Container(
+                                          child: Card(
                                             child: FutureBuilder<
                                                 List<GrapchisTemplate>>(
                                               future: futureGraphics,
@@ -445,30 +445,28 @@ class _WebDashboardState extends State<WebDashboard>
                                                     itemBuilder:
                                                         (BuildContext context,
                                                             int index) {
-                                                      final project =
-                                                          projects[index];
-                                                      final title =
-                                                          project.titlegraphics;
+                                                      final project = projects[index];
+                                                      final title = project.titlegraphics;
                                                       if (project.is_circular ==
                                                           true) {
                                                         return Container(
                                                           height: 1200,
                                                           child:
-                                                              GestureDetector(
+                                                          GestureDetector(
                                                             onTap: () {
                                                               Navigator.push(
                                                                 context,
                                                                 MaterialPageRoute(
                                                                   builder:
                                                                       (context) =>
-                                                                          TempCreateGraficsEdit(
-                                                                    title: project
-                                                                        .titlegraphics,
-                                                                    name: project
-                                                                        .namegraphics,
-                                                                    alias: project
-                                                                        .aliasgraphics,
-                                                                  ),
+                                                                      TempCreateGraficsEdit(
+                                                                        title: project
+                                                                            .titlegraphics,
+                                                                        name: project
+                                                                            .namegraphics,
+                                                                        alias: project
+                                                                            .aliasgraphics,
+                                                                      ),
                                                                 ),
                                                               );
                                                             },
@@ -480,19 +478,19 @@ class _WebDashboardState extends State<WebDashboard>
                                                                   children: [
                                                                     Center(
                                                                       child:
-                                                                          CustomPaint(
+                                                                      CustomPaint(
                                                                         painter:
-                                                                            Circular_graphics(_animation.value),
+                                                                        Circular_graphics(_animation.value),
                                                                         child:
-                                                                            SizedBox(
+                                                                        SizedBox(
                                                                           width:
-                                                                              200,
+                                                                          200,
                                                                           height:
-                                                                              200,
+                                                                          200,
                                                                           child:
-                                                                              Center(
+                                                                          Center(
                                                                             child:
-                                                                                Text(
+                                                                            Text(
                                                                               '0 °C',
                                                                               style: TextStyle(
                                                                                 fontSize: 50,
@@ -505,21 +503,21 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     Text(
                                                                       title,
                                                                       style:
-                                                                          TextStyle(
+                                                                      TextStyle(
                                                                         fontWeight:
-                                                                            FontWeight.bold,
+                                                                        FontWeight.bold,
                                                                         fontSize:
-                                                                            20,
+                                                                        20,
                                                                       ),
                                                                       textAlign:
-                                                                          TextAlign
-                                                                              .left,
+                                                                      TextAlign
+                                                                          .left,
                                                                     ),
                                                                     Positioned(
                                                                       top: 10,
                                                                       right: 10,
                                                                       child:
-                                                                          IconButton(
+                                                                      IconButton(
                                                                         icon: Icon(
                                                                             Icons.edit),
                                                                         onPressed:
@@ -533,7 +531,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                           // Acción para editar la tarjeta
                                                                           showDialog(
                                                                             context:
-                                                                                context,
+                                                                            context,
                                                                             builder:
                                                                                 (context) {
                                                                               return AlertDialog(
@@ -584,7 +582,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                             keyboardType: TextInputType.text,
                                                                                             //initialValue: _username, // Agregamos el valor inicial aquí
                                                                                             decoration: const InputDecoration(
-                                                                                              prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                              prefixIcon: Icon(Icons.incomplete_circle_sharp),
                                                                                               enabledBorder: OutlineInputBorder(
                                                                                                 borderSide: BorderSide(
                                                                                                   width: 1,
@@ -617,7 +615,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                             },
                                                                                             keyboardType: TextInputType.text,
                                                                                             decoration: const InputDecoration(
-                                                                                              prefixIcon: Icon(Icons.email_outlined),
+                                                                                              prefixIcon: Icon(Icons.supervised_user_circle_outlined),
                                                                                               enabledBorder: OutlineInputBorder(
                                                                                                 borderSide: BorderSide(
                                                                                                   width: 1,
@@ -651,7 +649,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                             keyboardType: TextInputType.text,
                                                                                             //initialValue: _username, // Agregamos el valor inicial aquí
                                                                                             decoration: const InputDecoration(
-                                                                                              prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                              prefixIcon: Icon(Icons.alternate_email_outlined),
                                                                                               enabledBorder: OutlineInputBorder(
                                                                                                 borderSide: BorderSide(
                                                                                                   width: 1,
@@ -738,20 +736,20 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     ),
                                                                     Positioned(
                                                                       bottom:
-                                                                          10,
+                                                                      10,
                                                                       right: 10,
                                                                       child:
-                                                                          IconButton(
+                                                                      IconButton(
                                                                         icon: const Icon(
                                                                             Icons
                                                                                 .delete,
                                                                             color:
-                                                                                Colors.black),
+                                                                            Colors.black),
                                                                         onPressed:
                                                                             () async {
                                                                           showDialog(
                                                                             context:
-                                                                                context,
+                                                                            context,
                                                                             builder:
                                                                                 (BuildContext context) {
                                                                               return AlertDialog(
@@ -837,6 +835,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                           TempCreateGraficsEdit(
                                                                     title: project
                                                                         .titlegraphics,
+
                                                                     name: project
                                                                         .namegraphics,
                                                                     alias: project
@@ -944,7 +943,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                 keyboardType: TextInputType.text,
                                                                                                 //initialValue: _username, // Agregamos el valor inicial aquí
                                                                                                 decoration: const InputDecoration(
-                                                                                                  prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                                  prefixIcon: Icon(Icons.incomplete_circle_sharp),
                                                                                                   enabledBorder: OutlineInputBorder(
                                                                                                     borderSide: BorderSide(
                                                                                                       width: 1,
@@ -977,7 +976,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                 },
                                                                                                 keyboardType: TextInputType.text,
                                                                                                 decoration: const InputDecoration(
-                                                                                                  prefixIcon: Icon(Icons.email_outlined),
+                                                                                                  prefixIcon: Icon(Icons.supervised_user_circle_outlined),
                                                                                                   enabledBorder: OutlineInputBorder(
                                                                                                     borderSide: BorderSide(
                                                                                                       width: 1,
@@ -1011,7 +1010,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                 keyboardType: TextInputType.text,
                                                                                                 //initialValue: _username, // Agregamos el valor inicial aquí
                                                                                                 decoration: const InputDecoration(
-                                                                                                  prefixIcon: Icon(Icons.person_2_outlined),
+                                                                                                  prefixIcon: Icon(Icons.alternate_email_outlined),
                                                                                                   enabledBorder: OutlineInputBorder(
                                                                                                     borderSide: BorderSide(
                                                                                                       width: 1,
