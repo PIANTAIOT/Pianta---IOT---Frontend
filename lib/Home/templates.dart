@@ -136,14 +136,16 @@ class _TemplatesState extends State<Templates> {
                   if (snapshot.hasData) {
                     final projects = snapshot.data!;
                     return GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: MediaQuery.of(context).size.width > 1200
+                      gridDelegate:
+                      SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: MediaQuery.of(context).size.width >
+                            1200
                             ? 5
                             : MediaQuery.of(context).size.width > 800
-                                ? 4
-                                : MediaQuery.of(context).size.width > 600
-                                    ? 3
-                                    : 2,
+                            ? 4
+                            : MediaQuery.of(context).size.width > 600
+                            ? 3
+                            : 2,
                         mainAxisSpacing: 16,
                         crossAxisSpacing: 16,
                         childAspectRatio: 1.0,
@@ -161,110 +163,119 @@ class _TemplatesState extends State<Templates> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: new EdgeInsets.all(0),
-                                    height: 130,
-                                    decoration: new BoxDecoration(
-                                      border:
-                                          new Border.all(color: Colors.white),
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  ListTile(
-                                    title: Text(
-                                      project.name,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20,
+                                      padding: new EdgeInsets.all(0),
+                                      height: 130,
+                                      decoration: new BoxDecoration(
+                                        border: new Border.all(
+                                            color: Colors.black12),
+                                        color: Colors.white,
                                       ),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.black),
-                                      onPressed: () async {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title:
-                                                  const Text('Delete template'),
-                                              content: const Text(
-                                                  'Are you sure you want to delete this template?'),
-                                              actions: <Widget>[
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    TextButton(
-                                                      style: ButtonStyle(
-                                                        backgroundColor:
-                                                            MaterialStateProperty
-                                                                .all<Color>(
-                                                          Colors.red,
-                                                        ),
-                                                      ),
-                                                      onPressed: () async {
-                                                        final response = await http
-                                                            .delete(Uri.parse(
-                                                                'http://127.0.0.1:8000/user/template/${project.id}/'));
-                                                        if (response
-                                                                .statusCode ==
-                                                            204) {
-                                                        } else {
-                                                          // Mostrar un mensaje de error si no se pudo eliminar el proyecto
-                                                        }
-                                                        await refreshProjects();
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: const Text(
-                                                        'Delete',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Spacer(),
-                                                    TextButton(
-                                                      style: ButtonStyle(
-                                                        backgroundColor:
-                                                            MaterialStateProperty
-                                                                .all<Color>(
-                                                          const Color.fromRGBO(
-                                                              0, 191, 174, 1),
-                                                        ),
-                                                      ),
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: const Text(
-                                                        'Cancel',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 12,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
+                                      child: Center(
+                                        child: ListTile(
+                                          title: Text(
+                                            project.name,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    Dashboard(project: project),
+                                              ),
                                             );
                                           },
-                                        );
-                                      },
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Dashboard(project: project),
                                         ),
+                                      )
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, size: 30,
+                                        color: Colors.black),
+                                    onPressed: () async {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text(
+                                                'Delete template'),
+                                            content: const Text(
+                                                'Are you sure you want to delete this template?'),
+                                            actions: <Widget>[
+                                              Row(
+                                                mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton(
+                                                    style: ButtonStyle(
+                                                      backgroundColor:
+                                                      MaterialStateProperty
+                                                          .all<Color>(
+                                                        Colors.red,
+                                                      ),
+                                                    ),
+                                                    onPressed: () async {
+                                                      final response = await http.delete(
+                                                          Uri.parse('http://127.0.0.1:8000/user/template/${project.id}/'));
+                                                      if (response.statusCode == 204) {
+
+                                                      } else {
+                                                        // Mostrar un mensaje de error si no se pudo eliminar el proyecto
+                                                      }
+                                                      await refreshProjects();
+                                                      Navigator.of(
+                                                          context).pop();
+                                                    },
+                                                    child: const Text(
+                                                      'Delete',
+                                                      style: TextStyle(
+                                                        color:
+                                                        Colors.white,
+                                                        fontWeight:
+                                                        FontWeight
+                                                            .bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Spacer(),
+                                                  TextButton(
+                                                    style: ButtonStyle(
+                                                      backgroundColor:
+                                                      MaterialStateProperty
+                                                          .all<Color>(
+                                                        const Color
+                                                            .fromRGBO(
+                                                            0,
+                                                            191,
+                                                            174,
+                                                            1),
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.of(
+                                                          context)
+                                                          .pop();
+                                                    },
+                                                    child: const Text(
+                                                      'Cancel',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                        FontWeight
+                                                            .bold,
+                                                        fontSize: 12,
+                                                        color:
+                                                        Colors.white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       );
                                     },
                                   ),
