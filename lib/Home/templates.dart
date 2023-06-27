@@ -11,8 +11,6 @@ import '../Funciones/constantes.dart';
 import '../Graficas/TemplateNewGrafic.dart';
 import 'create_templete.dart';
 
-//el Project es lo que esta en la api
-
 class Templates extends StatefulWidget {
   const Templates({Key? key}) : super(key: key);
 
@@ -229,6 +227,8 @@ class _TemplatesState extends State<Templates> {
                                                       Navigator.of(
                                                           context).pop();
                                                     },
+
+
                                                     child: const Text(
                                                       'Delete',
                                                       style: TextStyle(
@@ -483,3 +483,5 @@ class Dashboard extends StatelessWidget {
     );
   }
 } // hola
+
+

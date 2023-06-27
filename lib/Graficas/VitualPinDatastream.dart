@@ -79,68 +79,27 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
   final _formKey = GlobalKey<FormState>();
   final _deviceNameController = TextEditingController();
   final _locationController = TextEditingController();
-  String? _selectedValue;
-  List<Sensor> _sensorData = [];
-  List<String> _vValues = [
-    'v1',
-    'v2',
-    'v3',
-    'v4',
-    'v5',
-    'v6',
-    'v7',
-    'v8',
-    'v9',
-    'v10',
-    'v11',
-    'v12',
-  ];
+    String? _selectedValue;
+    final List<String> _vValues = [
+      'v1',
+      'v2',
+      'v3',
+      'v4',
+      'v5',
+      'v6',
+      'v7',
+      'v8',
+      'v9',
+      'v10',
+      'v11',
+      'v12',
+    ];
 @override
 void initState() {
   super.initState();
   futureGraphics = fetchGraphics();
   futureProjects = fetchProjects();
 }
-  void _navigateToApi() {
-    if (_selectedValue != null) {
-      // Verificar si el valor de V ya ha sido seleccionado antes
-      if (_sensorData.any((sensor) =>
-      sensor.v1.toString() == _selectedValue ||
-          sensor.v2.toString() == _selectedValue ||
-          sensor.v3.toString() == _selectedValue ||
-          sensor.v4.toString() == _selectedValue ||
-          sensor.v5.toString() == _selectedValue ||
-          sensor.v6.toString() == _selectedValue ||
-          sensor.v7.toString() == _selectedValue ||
-          sensor.v8.toString() == _selectedValue ||
-          sensor.v9.toString() == _selectedValue ||
-          sensor.v10.toString() == _selectedValue ||
-          sensor.v11.toString() == _selectedValue ||
-          sensor.v12.toString() == _selectedValue)) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Error'),
-            content: Text(
-                'El valor de V ya ha sido seleccionado. Por favor, elige otro.'),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Aceptar'),
-              ),
-            ],
-          ),
-        );
-      } else {
-        String apiUrl =
-            'http://127.0.0.1:8000/user/datos-sensores/$_selectedValue';
-        // Navegar a la API con el valor de V seleccionado
-        // Aquí puedes usar Navigator.push para navegar a la nueva pantalla o llamar a tu función de API
-        //Navigator.push(context, MaterialPageRoute(builder: (context) => WebDashboard()));
-        print(apiUrl);
-      }
-    }
-  }
 
 
 
@@ -167,18 +126,19 @@ void initState() {
 
   final projects = templateprojects = [];
   late Future<List<ProjectTemplate>> futureProjects;
-  ProjectTemplate? project;
+   ProjectTemplate? project;
   Color _selectedColor = Colors.blue;
 
 
   Future<dynamic> crearGrafico(BuildContext context) async {
     await fetchProjects();
     final prefs = await SharedPreferences.getInstance();
+    final storedIsCircular = prefs.getBool('is_circular') ?? false;// Obtener el valor de isCircular desde SharedPreferences
     final storedTitle = prefs.getString('title');
     final storedName = prefs.getString('name');
     final storedAlias = prefs.getString('alias');
     final storedLocation = prefs.getString('location');
-    final storedIsCircular = prefs.getBool('is_circular') ?? false; // Obtener el valor de isCircular desde SharedPreferences
+
 
     print(storedAlias);
     print(storedName);
@@ -194,7 +154,8 @@ void initState() {
           'aliasgraphics': storedAlias,
           'location': storedLocation,
           'is_circular': storedIsCircular.toString(),
-          'color':_selectedColor.toString()
+          'color':_selectedColor.toString(),
+          'ports': _selectedValue ?? '',
         },
 
       );
@@ -358,7 +319,7 @@ void initState() {
                                     children: [
                                       const SizedBox(height: 18.0),
                                       Row(
-                                        children: [
+                                        children: const [
                                           Text(
                                             'Elegir PIN',
                                             style: TextStyle(
@@ -366,7 +327,7 @@ void initState() {
                                               fontSize: 14.0,
                                             ),
                                           ),
-                                          const SizedBox(width: 16.0),
+                                          SizedBox(width: 16.0),
                                         ],
                                       ),
                                       const SizedBox(height: 16.0),
@@ -412,7 +373,7 @@ void initState() {
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: const Text('Seleccione un color'),
+                                              title: const Text('select color'),
                                               content: SingleChildScrollView(
                                                 child: ColorPicker(
                                                   pickerColor: _selectedColor,
@@ -516,7 +477,6 @@ void initState() {
                                 SizedBox(width: 20),
                                 ElevatedButton(
                                   onPressed: () async {
-                                    _navigateToApi();
                                     _saveName(nameGraphicscontroller.text);
                                     _saveAlias(aliasgraphicscontroller.text);
                                     _saveLocation(_locationController.text);
@@ -526,7 +486,7 @@ void initState() {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                         WebDashboard(id: widget.id, name:''),
+                                         Templates(),
                                       ),
                                     );
                                   },

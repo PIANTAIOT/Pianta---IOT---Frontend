@@ -71,8 +71,12 @@ class VirtualPinDatastreamEdit extends StatefulWidget {
 
 class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
   final graphicstemplate = graphics = [];
-  late Future<List<GrapchisTemplate>> futureGraphics;
   Color _selectedColor = Colors.blue;
+  late Future<List<GrapchisTemplate>> futureGraphics;
+  late Future<List<ProjectTemplate>> futureProjects;
+
+  ProjectTemplate? project;
+
 
   final _locationController = TextEditingController();
   String? _selectedValue;
@@ -310,7 +314,7 @@ class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                        const WebDashboard(id: 3, name:''),
+                                        Templates(),
                                       ),
                                     );
                                   },

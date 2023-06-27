@@ -57,7 +57,10 @@ class _MyDeviceState extends State<MyDevice> {
     super.initState();
     _getDevices();
     futureProjects = fetchProjects();
+
   }
+
+
   Future<List<ProjectTemplate>> fetchProjects() async {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
@@ -246,19 +249,42 @@ class _MyDeviceState extends State<MyDevice> {
                                   _deleteDevice(device.id);
                                 },
                               ),
-                              onTap: () {
-                                final selectedTemplate = _templates.firstWhereOrNull((template) => template.id.toString() == device.template);
-                                final templateName = selectedTemplate?.name ?? "Unknown Template";
-                                print('hola $selectedTemplate');
-                                print('device.template: ${device.template}');
-                                print('template.id: ${selectedTemplate?.id}');
+                              onTap: () async {
+                                var box = await Hive.openBox(tokenBox);
+                                final token = box.get("token") as String?;
 
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>  DeviceGrafics(template: device.template, nameTemplate: templateName,)),
-                                );
+                                final url = Uri.parse('http://127.0.0.1:8000/user/template/');
+                                final response = await http.get(url, headers: {'Authorization': 'Token $token'});
+
+                                if (response.statusCode == 200 && json.decode(response.body).isNotEmpty) {
+                                  final selectedTemplate = _templates.firstWhereOrNull((template) => template.id.toString() == device.template);
+                                  final templateName = selectedTemplate?.name ?? "No template selected";
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => DeviceGrafics(template: device.template, nameTemplate: templateName, iddevice: device.id, idproject: widget.id, nombreDevice: device.name, locationDevice: device.location, )),
+                                  );
+                                } else {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Create a template first'),
+                                        content: const Text('Please create a template before adding a device.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.push(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => Templates()),
+                                            ),
+                                            child: const Text('OK'),
+                                          )
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
                               },
+
                             ),
                           ),
                         );

@@ -6,12 +6,16 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
 import 'package:pianta/Home/template_model.dart';
+import 'package:pianta/MyDevices/My_Devices.dart';
 import 'dart:math';
 
 import '../Funciones/constantes.dart';
 import '../Home/graphics_model.dart';
+import '../Home/proyecto.dart';
+import '../Home/templates.dart';
 import '../constants.dart';
 import 'Dashboard.dart';
+import 'New_Devices.dart';
 
 //ignore: camel_case_types
 //grafica circular
@@ -65,7 +69,12 @@ List<SensorData> device = [];
 class DeviceGrafics extends StatefulWidget {
   final String template;
   final String nameTemplate;
-  const DeviceGrafics({required this.template, required this.nameTemplate, super.key});
+  final int idproject;
+  final int iddevice;
+  final String nombreDevice;
+  final String locationDevice;
+  const DeviceGrafics(
+      {required this.template, required this.nameTemplate, required this.iddevice, required this.idproject, required this.nombreDevice, required this.locationDevice, super.key});
 
   @override
   State<DeviceGrafics> createState() => _DeviceGraficsState();
@@ -85,10 +94,65 @@ class _DeviceGraficsState extends State<DeviceGrafics>
   Map<String, dynamic>? apiData;
   late Future<List<SensorData>> _fetchDevicesFuture;
   List<Device> devices = <Device>[];
-
-
+  final _formKey = GlobalKey<FormState>();
+  String? _selectedTemplate;
+  List<dynamic> _templates = [];
   late Future<List<GrapchisTemplate>> futureGraphics;
 
+  void _saveDevice() async {
+    if (_formKey.currentState!.validate()) {
+      var box = await Hive.openBox(tokenBox);
+      final token = box.get("token") as String?;
+      String? templateId;
+      final selectedTemplate = _templates
+          .firstWhere((template) => template['name'] == _selectedTemplate);
+      templateId = selectedTemplate['id'].toString();
+      print(templateId);
+      final response = await http.put(
+        Uri.parse('http://127.0.0.1:8000/user/devices/${widget.iddevice}/${widget.idproject}/'),
+        headers: {
+          'Authorization': 'Token $token',
+          'Content-Type': 'application/json',
+          // Especifica el tipo de contenido del cuerpo de la solicitud
+        },
+        body: jsonEncode({
+            "name": widget.nombreDevice,
+            "location": widget.locationDevice,
+            "template": templateId,
+            "relationProject": widget.idproject
+        }),
+      );
+      if (response.statusCode == 200) {
+        print(response.body);
+      } else {
+        print("Could not update graph: ${response.body}");
+      }
+      Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyDevice(id: widget.idproject),
+          )
+      );
+    }
+  }
+
+  Future<void> _getTemplates() async {
+    var box = await Hive.openBox(tokenBox);
+    final token = box.get("token") as String?;
+
+    final url = Uri.parse('http://127.0.0.1:8000/user/template/');
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Token $token'},
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _templates = json.decode(response.body);
+      });
+    } else {
+      throw Exception('Failed to load templates');
+    }
+  }
 
   Future<List<GrapchisTemplate>> fetchGraphics() async {
     var box = await Hive.openBox(tokenBox);
@@ -101,7 +165,7 @@ class _DeviceGraficsState extends State<DeviceGrafics>
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       final List<GrapchisTemplate> projects =
-      jsonList.map((json) => GrapchisTemplate.fromJson(json)).toList();
+          jsonList.map((json) => GrapchisTemplate.fromJson(json)).toList();
       //esto refresca el proyecto para ver los cambios
       //await refreshProjects();
       return projects;
@@ -109,6 +173,7 @@ class _DeviceGraficsState extends State<DeviceGrafics>
       throw Exception('Failed to load project list');
     }
   }
+
   Future<void> _fetchData() async {
     try {
       final response = await http
@@ -171,6 +236,7 @@ class _DeviceGraficsState extends State<DeviceGrafics>
         _fetchDevicesFuture = fetchDevices();
       });
     });
+    _getTemplates();
   }
 
   @override
@@ -219,14 +285,12 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 30),
                       ),
-
-                       Text(
-                        'Name Template:  ${widget.nameTemplate}',
+                      Text(
+                        'Name Template: ${widget.nameTemplate}',
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 30),
                       ),
-
                     ],
                   ),
                 ), //fin modulo
@@ -242,32 +306,26 @@ class _DeviceGraficsState extends State<DeviceGrafics>
             ),
             Expanded(
               child: Card(
-                child: FutureBuilder<
-                    List<GrapchisTemplate>>(
+                child: FutureBuilder<List<GrapchisTemplate>>(
                   future: futureGraphics,
                   builder: (context, snapshot) {
-                    final _formKey =
-                    GlobalKey<FormState>();
+                    final formKey = GlobalKey<FormState>();
                     if (snapshot.hasData) {
-                      final projects =
-                      snapshot.data!;
+                      final projects = snapshot.data!;
                       return GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, // Número de columnas en el GridView
-                          childAspectRatio: 950 / 400, // Relación de aspecto para controlar el tamaño de las celdas
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 950 / 400,
                         ),
                         itemCount: projects.length,
-                        itemBuilder:
-                            (BuildContext context,
-                            int index) {
+                        itemBuilder: (BuildContext context, int index) {
                           final project = projects[index];
                           final title = project.titlegraphics;
-                          if (project.is_circular ==
-                              true) {
+                          if (project.is_circular == true) {
                             return Container(
                               height: 1200,
-                              child:
-                              GestureDetector(
+                              child: GestureDetector(
                                 child: Card(
                                   child: SizedBox(
                                     width: 250,
@@ -275,20 +333,14 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                                     child: Stack(
                                       children: [
                                         Center(
-                                          child:
-                                          CustomPaint(
-                                            painter:
-                                            Circular_graphics(_animation.value),
-                                            child:
-                                            SizedBox(
-                                              width:
-                                              200,
-                                              height:
-                                              200,
-                                              child:
-                                              Center(
-                                                child:
-                                                Text(
+                                          child: CustomPaint(
+                                            painter: Circular_graphics(
+                                                _animation.value),
+                                            child: SizedBox(
+                                              width: 200,
+                                              height: 200,
+                                              child: Center(
+                                                child: Text(
                                                   '0 °C',
                                                   style: TextStyle(
                                                     fontSize: 50,
@@ -300,15 +352,11 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                                         ),
                                         Text(
                                           title,
-                                          style:
-                                          TextStyle(
-                                            fontWeight:
-                                            FontWeight.bold,
-                                            fontSize:
-                                            25,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 25,
                                           ),
-                                          textAlign:
-                                          TextAlign.center,
+                                          textAlign: TextAlign.center,
                                         ),
                                       ],
                                     ),
@@ -316,12 +364,10 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                                 ),
                               ),
                             );
-                          } else {
+                          } else if(project.is_circular == false){
                             return Container(
                               height: 1200,
-                              child:
-                              GestureDetector(
-
+                              child: GestureDetector(
                                 child: Card(
                                   child: SizedBox(
                                     width: 250,
@@ -329,27 +375,19 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                                     child: Stack(
                                       children: [
                                         Center(
-                                          child:
-                                          SizedBox(
-                                            height:
-                                            200,
-                                            width:
-                                            200,
-                                            child:
-                                            Linea_Graphics(),
+                                          child: SizedBox(
+                                            height: 200,
+                                            width: 200,
+                                            child: Linea_Graphics(),
                                           ),
                                         ),
                                         Text(
                                           title,
-                                          style:
-                                           TextStyle(
-                                            fontWeight:
-                                            FontWeight.bold,
-                                            fontSize:
-                                            25,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 25,
                                           ),
-                                          textAlign:
-                                          TextAlign.center,
+                                          textAlign: TextAlign.center,
                                         ),
                                       ],
                                     ),
@@ -361,13 +399,90 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                         },
                       );
                     } else if (snapshot.hasError) {
-                      return Text(
-                          "${snapshot.error}");
+                      return Scaffold(
+                        body: Center(
+                          child: Form(
+                            key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "${snapshot.error}",
+                              ),
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    children: [
+                                      SizedBox(
+                                        width: 250,
+                                        height: 250,
+                                        child: Center(
+                                          child: DropdownButtonFormField<String>(
+                                            decoration: const InputDecoration(
+                                              labelText: 'Choose a template to view the graphs',
+                                              border: OutlineInputBorder(),
+                                            ),
+                                            value: _selectedTemplate,
+                                            items: _templates.map((template) => DropdownMenuItem<String>(
+                                              value: template['name'],
+                                              child: Text(template['name']),
+                                            )).toList(),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _selectedTemplate = value;
+                                              });
+                                            },
+                                            validator: (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return 'Please select a device template';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              Navigator.of(context).pop();
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              primary: Colors.white,
+                                            ),
+                                            child: const Text(
+                                              'Cancel',
+                                              style: TextStyle(color: Colors.black),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12), // Agregar espacio horizontal
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
+                                            ),
+                                            onPressed: () {
+                                              if (_formKey.currentState!.validate()) {
+                                                _saveDevice();
+                                              }
+                                            },
+                                            child: const Text('Save'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ),
+                      );
                     }
                     // By default, show a loading spinner
-                    return const Center(
-                        child:
-                        CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   },
                 ),
               ),

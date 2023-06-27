@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -11,6 +12,26 @@ import '../Funciones/constantes.dart';
 import '../Graficas/TemplateNewGrafic.dart';
 import '../Home/graphics_model.dart';
 import '../Home/template_model.dart';
+
+class SensorData {
+  final String name;
+  final DateTime createdAt;
+  final double v12;
+
+  SensorData({
+    required this.name,
+    required this.createdAt,
+    required this.v12,
+  });
+
+  factory SensorData.fromJson(Map<String, dynamic> json) {
+    return SensorData(
+      name: json['name'],
+      createdAt: DateTime.parse(json['created_at']),
+      v12: json['v12'],
+    );
+  }
+}
 
 class WebDashboard extends StatefulWidget {
   final int id;
@@ -33,7 +54,11 @@ class _WebDashboardState extends State<WebDashboard>
   late Animation<double> _animation;
   final maxProgress = 40.0;
   ProjectTemplate? project;
-
+  late Future<List<SensorData>> _fetchDevicesFuture;
+  Map<String, dynamic>? apiData;
+  SensorData? selectedDevice;
+  List<SensorData> device = [];
+  double v12 = 0.0;
   @override
   void initState() {
     super.initState();
@@ -54,8 +79,57 @@ class _WebDashboardState extends State<WebDashboard>
     )..addListener(() {
         setState(() {});
       });
+    _fetchData();
+    _fetchDevicesFuture = fetchDevices();
+    super.initState();
+
+    Timer.periodic(const Duration(seconds: 10), (timer) {
+      setState(() {
+        _fetchDevicesFuture = fetchDevices();
+      });
+    });
   }
 
+  @override
+  void dispose() {
+    // Cancelamos el timer cuando se destruye el widget
+    super.dispose();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final response = await http
+          .get(Uri.parse('http://127.0.0.1:8000/user/datos-sensores/v12/${widget.id}/'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          apiData = data;
+        });
+      } else {
+        // Handle the error
+      }
+    } catch (e) {
+      // Handle the error
+    }
+  }
+  Future<List<SensorData>> fetchDevices() async {
+    final response = await http
+        .get(Uri.parse('http://127.0.0.1:8000/user/datos-sensores/v12/${widget.id}/'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<SensorData> devices = [];
+      for (var item in data) {
+        devices.add(SensorData.fromJson(item));
+      }
+      setState(() {
+        device = devices;
+        selectedDevice = devices.isNotEmpty ? devices[0] : null;
+      });
+      return devices;
+    } else {
+      throw Exception('Failed to load devices');
+    }
+  }
   Offset? finalPosition;
   List<Widget> duplicatedCards = [];
 
@@ -157,7 +231,7 @@ class _WebDashboardState extends State<WebDashboard>
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                           WebDashboard(id:2, name:''),
+                                           WebDashboard(id:widget.id, name: widget.name,),
                                     ),
                                   );
                                 },
@@ -402,6 +476,9 @@ class _WebDashboardState extends State<WebDashboard>
                                                 List<GrapchisTemplate>>(
                                               future: futureGraphics,
                                               builder: (context, snapshot) {
+
+
+
                                                 TextEditingController
                                                     titleController =
                                                     TextEditingController();
@@ -445,6 +522,8 @@ class _WebDashboardState extends State<WebDashboard>
                                                     itemBuilder:
                                                         (BuildContext context,
                                                             int index) {
+
+                                                          final lastData = device.isNotEmpty ? device.last : null;
                                                       final project = projects[index];
                                                       final title = project.titlegraphics;
                                                       if (project.is_circular ==
@@ -466,6 +545,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                             .namegraphics,
                                                                         alias: project
                                                                             .aliasgraphics,
+                                                                            
                                                                       ),
                                                                 ),
                                                               );
@@ -479,39 +559,52 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     Center(
                                                                       child:
                                                                       CustomPaint(
-                                                                        painter:
-                                                                        Circular_graphics(_animation.value),
-                                                                        child:
-                                                                        SizedBox(
-                                                                          width:
-                                                                          200,
-                                                                          height:
-                                                                          200,
-                                                                          child:
-                                                                          Center(
-                                                                            child:
-                                                                            Text(
-                                                                              '0 °C',
-                                                                              style: TextStyle(
-                                                                                fontSize: 30, //tamaño del numero dentro de la grafica circular en las card duplicadas
+                                                                        painter: Circular_graphics(
+                                                                            lastData?.v12 ?? 0.0),
+                                                                        child: SizedBox(
+                                                                          child: GestureDetector(
+                                                                            onTap: () {
+                                                                              if (_animationController.value ==
+                                                                                  maxProgress) {
+                                                                                _animationController.reverse();
+                                                                              } else {
+                                                                                _animationController.forward();
+                                                                              }
+                                                                            },
+                                                                            child: Center(
+                                                                              child: lastData == null
+                                                                                  ? const Text('No data available')
+                                                                                  : Text(
+                                                                                '${lastData.v12} °C',
+                                                                                style:
+                                                                                const TextStyle(fontSize: 30,),
                                                                               ),
                                                                             ),
                                                                           ),
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                    Text(
-                                                                      title,
-                                                                      style:
-                                                                      TextStyle(
-                                                                        fontWeight:
-                                                                        FontWeight.bold,
-                                                                        fontSize:
-                                                                        20,
-                                                                      ),
-                                                                      textAlign:
-                                                                      TextAlign
-                                                                          .left,
+                                                                    Wrap(
+                                                                      spacing: 16.0, // Espacio horizontal entre los elementos del Wrap
+                                                                      runSpacing: 8.0, // Espacio vertical entre las líneas de texto
+                                                                      children: [
+                                                                        Text(
+                                                                          title,
+                                                                          style: const TextStyle(
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontSize: 20,
+                                                                          ),
+                                                                          textAlign: TextAlign.left,
+                                                                        ),
+                                                                        Text(
+                                                                          'Port: ${project.ports}',
+                                                                          style: TextStyle(
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontSize: 20,
+                                                                          ),
+                                                                          textAlign: TextAlign.center,
+                                                                        ),
+                                                                      ],
                                                                     ),
                                                                     Positioned(
                                                                       top: 10,
@@ -861,13 +954,27 @@ class _WebDashboardState extends State<WebDashboard>
                                                                             Linea_Graphics(),
                                                                       ),
                                                                     ),
-                                                                    Text(
-                                                                      title,
-                                                                      style: const TextStyle(
-                                                                        fontWeight: FontWeight.bold,
-                                                                        fontSize: 20,
-                                                                      ),
-                                                                      textAlign: TextAlign.left,
+                                                                    Wrap(
+                                                                      spacing: 16.0, // Espacio horizontal entre los elementos del Wrap
+                                                                      runSpacing: 8.0, // Espacio vertical entre las líneas de texto
+                                                                      children: [
+                                                                        Text(
+                                                                          title,
+                                                                          style: const TextStyle(
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontSize: 20,
+                                                                          ),
+                                                                          textAlign: TextAlign.left,
+                                                                        ),
+                                                                        Text(
+                                                                          'Port: ${project.ports}',
+                                                                          style: TextStyle(
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontSize: 20,
+                                                                          ),
+                                                                          textAlign: TextAlign.center,
+                                                                        ),
+                                                                      ],
                                                                     ),
                                                                     Positioned(
                                                                       top: 10,
@@ -1222,27 +1329,36 @@ class Circular_graphics extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final circlePaint = Paint()
+    Paint circle = Paint()
       ..strokeWidth = 5
       ..color = Colors.black
       ..style = PaintingStyle.stroke;
 
-    final center = Offset(
+    Offset center = Offset(
       size.width / 2,
       size.height / 2,
     );
-    final radius = 60.0; //se cuadra el tamano del circulo
-    canvas.drawCircle(center, radius, circlePaint);
+    double radius = 60.0;
+    canvas.drawCircle(center, radius, circle);
 
-    final animationArcPaint = Paint()
+    Paint animationArc = Paint()
       ..strokeWidth = 5
-      ..color = Colors.purpleAccent
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    final angle = 2 * pi * (currentProgress / 100);
+    if (currentProgress > 30) {
+      animationArc.color = Colors.red;
+    } else if (currentProgress > 27) {
+      animationArc.color = Colors.orange;
+    } else if (currentProgress > 20) {
+      animationArc.color = Colors.yellow;
+    } else {
+      animationArc.color = Colors.blue;
+    }
+
+    double angle = 2 * pi * (currentProgress / 100);
     canvas.drawArc(Rect.fromCircle(center: center, radius: radius), pi / 2,
-        angle, false, animationArcPaint);
+        angle, false, animationArc);
   }
 
   @override
@@ -1250,7 +1366,6 @@ class Circular_graphics extends CustomPainter {
     return true;
   }
 }
-
 class Linea_Graphics extends StatelessWidget {
   const Linea_Graphics({Key? key}) : super(key: key);
 

@@ -18,10 +18,11 @@ class DataPoint {
   final String namegraphics;
   final String aliasgraphics;
   final String location;
-  bool is_circular;
+  //bool is_circular;
+  final String ports;
   final String color;
 
-  DataPoint({required this.titlegraphics, required this.namegraphics, required this.aliasgraphics, required this.id, required this.location, required this.is_circular, required this.color});
+  DataPoint({required this.titlegraphics, required this.namegraphics, required this.aliasgraphics,     required this.ports, required this.id, required this.location, required this.color});
 
   factory DataPoint.fromJson(Map<String, dynamic> json) {
     return DataPoint(
@@ -30,7 +31,8 @@ class DataPoint {
       namegraphics: json['namegraphics'],
       aliasgraphics: json['aliasgraphics'],
       location: json['location'],
-      is_circular: json['is_circular'],
+      //is_circular: json['is_circular'],
+      ports: json['ports'],
       color: json['color'],
     );
   }
@@ -46,17 +48,9 @@ class TempCreateGrafics extends StatefulWidget {
 
 class _TempCreateGraficsState extends State<TempCreateGrafics> {
 
-
-
-
-
   final TextEditingController titleController = TextEditingController();
 
-
-
   final _keyForm = GlobalKey<FormState>();
-
-
 
   void _saveTitle(String title) async {
     final prefs = await SharedPreferences.getInstance();
@@ -81,7 +75,6 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
       Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}'),
       headers: {'Authorization': 'Token $token'},
     );
-
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       final List<DataPoint> projects =
@@ -101,20 +94,22 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
     final prefs = await SharedPreferences.getInstance();
     final storedTitle = prefs.getString('title');
     final selectedGraph = selectedGraphData[0]; // Obtener la gráfica seleccionada
-
+    final storedIsCircular = prefs.getBool('is_circular') ?? false;
     try {
       final response = await http.post(
+
+
         Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/'),
         body: {
           'titlegraphics': storedTitle,
           'namegraphics': selectedGraph.namegraphics,
           'aliasgraphics': selectedGraph.aliasgraphics,
           'location': selectedGraph.location,
-          'is_circular': selectedGraph.is_circular.toString(),
+          'is_circular': storedIsCircular.toString(),
+          'ports':selectedGraph.ports,
           'color': selectedGraph.color.toString(),
         },
       );
-
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Graph created successfully')),

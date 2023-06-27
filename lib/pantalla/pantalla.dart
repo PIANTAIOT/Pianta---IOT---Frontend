@@ -22,7 +22,7 @@ class _IntroScreenDefaultState extends State<IntroScreenDefault> {
 
     listContentConfig.add(
       const ContentConfig(
-        title: "WELCOME",
+        title: "WELCOME!",
         description:
             "PIANTA offers you a complete and detailed vision of the environment in different places. It's like having a magical window to the world around you!",
         pathImage: "images/Logotipo_pianta.png",

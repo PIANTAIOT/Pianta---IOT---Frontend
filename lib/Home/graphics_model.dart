@@ -5,6 +5,7 @@ class GrapchisTemplate {
   final String aliasgraphics;
   final String location;
   bool is_circular;
+  final String ports;
   GrapchisTemplate({
     required this.id,
     required this.titlegraphics,
@@ -12,6 +13,7 @@ class GrapchisTemplate {
     required this.aliasgraphics,
     required this.location,
     required this.is_circular,
+    required this.ports,
   });
 
   factory GrapchisTemplate.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class GrapchisTemplate {
       aliasgraphics: json['aliasgraphics'],
       location: json['location'],
       is_circular: json['is_circular'],
+      ports: json['ports'],
     );
   }
 }

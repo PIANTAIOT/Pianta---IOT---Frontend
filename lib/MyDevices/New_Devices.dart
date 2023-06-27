@@ -80,12 +80,11 @@ class _NewDeviceState extends State<NewDevice> {
     if (_deviceNameController.text.isNotEmpty) {
       final url =
           Uri.parse('http://127.0.0.1:8000/user/project/${widget.id}/devices/');
-
       String? templateId;
-
       if (_selectedTemplate != null) {
         // Busca el template seleccionado en la lista de templates para obtener su ID
-        final selectedTemplate = _templates.firstWhere((template) => template['name'] == _selectedTemplate);
+        final selectedTemplate = _templates
+            .firstWhere((template) => template['name'] == _selectedTemplate);
         templateId = selectedTemplate['id'].toString();
       }
       print(templateId);
@@ -93,7 +92,8 @@ class _NewDeviceState extends State<NewDevice> {
         url,
         body: {
           'name': _deviceNameController.text,
-          'template': templateId, // Incluye el ID del template seleccionado en el body
+          'template':
+              templateId, // Incluye el ID del template seleccionado en el body
           'location': _locationController.text,
         },
         headers: {'Authorization': 'Token $token'},
@@ -291,6 +291,7 @@ class _NewDeviceState extends State<NewDevice> {
       ),
     ));
   }
+
   updateLocation(value) {
     setState(() {
       _locationController.text = value.toString();
