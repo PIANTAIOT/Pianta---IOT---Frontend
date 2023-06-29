@@ -136,7 +136,7 @@ class _LocalizationState extends State<Localization> {
                                   context: context,
                                   builder: (_) => AlertDialog(
                                     title: const Text(
-                                        '¿Desea guardar la ubicación?'),
+                                        'Do you want to save this loaction?'),
                                     actions: [
                                       TextButton(
                                         child: const Text('No'),
@@ -150,7 +150,7 @@ class _LocalizationState extends State<Localization> {
                                         },
                                       ),
                                       TextButton(
-                                        child: const Text('Sí'),
+                                        child: const Text('Yes'),
                                         onPressed: () {
                                           Navigator.pop(context);
                                           Navigator.pop(

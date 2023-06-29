@@ -234,11 +234,11 @@ class _MapSensorState extends State<MapSensor> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Guardar ubicación'),
-              content: Text('¿Desea guardar esta ubicación?'),
+              title: Text('Save location'),
+              content: Text('Do you want to save this location?'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Cancelar'),
+                  child: Text('Cancel'),
                   onPressed: () {
                     // Eliminar el marcador y cerrar el diálogo
                     setState(() {
@@ -248,7 +248,7 @@ class _MapSensorState extends State<MapSensor> {
                   },
                 ),
                 TextButton(
-                  child: Text('Guardar'),
+                  child: Text('Save'),
                   onPressed: () {
                     // Guardar las coordenadas y cerrar el diálogo
                     polylineCoordinates.add(location);
