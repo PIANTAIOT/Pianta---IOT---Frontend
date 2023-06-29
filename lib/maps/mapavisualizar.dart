@@ -6,9 +6,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:pianta/api_maps.dart';
 import 'package:pianta/modelmaps.dart';
 import '../Funciones/constantes.dart';
+import '../Home/template_model.dart';
 import '../constants.dart';
 
 const MAPBOX_ACCESS_TOKEN =
@@ -48,60 +48,35 @@ class LocationeDevice {
 }
 
 class LocationeSensor {
-  List<LocationSensor> sensors;
+  List<String>? locations;
 
   LocationeSensor({
-    required this.sensors,
+    this.locations,
   });
 
   factory LocationeSensor.fromJson(dynamic json) {
-    List<LocationSensor> sensors = [];
-
     if (json is List && json.isNotEmpty) {
-      sensors = json.map((item) => LocationSensor.fromJson(item)).toList();
+      List<String> locations = json.map((item) {
+        Map<String, dynamic> device = item as Map<String, dynamic>;
+        return device['location'] as String;
+      }).toList();
+
+      return LocationeSensor(
+        locations: locations,
+      );
+    } else {
+      return LocationeSensor(locations: []);
     }
-
-    return LocationeSensor(sensors: sensors);
   }
 
-  List<LatLng?> getLatLngList() {
-    return sensors.map((sensor) => sensor.location).toList();
-  }
-}
-
-class LocationSensor {
-  LatLng location;
-  Color color;
-
-  LocationSensor({
-    required this.location,
-    required this.color,
-  });
-
-  factory LocationSensor.fromJson(dynamic json) {
-    String locationStr = json['location'] as String;
-    List<String> coordinates = locationStr.split(',');
-    double latitude = double.parse(coordinates[0]);
-    double longitude = double.parse(coordinates[1]);
-    LatLng location = LatLng(latitude, longitude);
-
-    Color color = _parseColor(json['color']);
-
-    return LocationSensor(
-      location: location,
-      color: color,
-    );
-  }
-
-  static Color _parseColor(String colorStr) {
-    // Implementa la lógica para convertir el valor de colorStr en un objeto Color
-    // Puedes utilizar el constructor Color() o utilizar algún otro método
-    // dependiendo del formato en el que recibas el color desde la API.
-    // Por ejemplo:
-    // return Color(int.parse(colorStr, radix: 16));
-
-    // Aquí, se devuelve un color blanco por defecto si no se puede parsear el colorStr.
-    return Colors.white;
+  List<LatLng> getLatLngList() {
+    return locations?.map((location) {
+          List<String> coordinates = location.split(',');
+          double latitude = double.parse(coordinates[0]);
+          double longitude = double.parse(coordinates[1]);
+          return LatLng(latitude, longitude);
+        }).toList() ??
+        [];
   }
 }
 
@@ -115,6 +90,8 @@ class ViewLocalization extends StatefulWidget {
 }
 
 class _ViewLocalizationState extends State<ViewLocalization> {
+  late Future<List<ProjectTemplate>> futureProjects;
+
   Future<LocationeDevice?> getDeviceLocationes(String token) async {
     var url =
         Uri.parse("http://127.0.0.1:8000/user/project/${widget.id}/devices/");
@@ -127,6 +104,48 @@ class _ViewLocalizationState extends State<ViewLocalization> {
       return location;
     } else {
       return null;
+    }
+  }
+
+  List<ProjectTemplate> _templates = [];
+
+  Future<LocationeSensor?> getSensorLocations(String token) async {
+    var url =
+        Uri.parse("http://127.0.0.1:8000/user/graphics/8/");
+   
+    var res = await http.get(url, headers: {
+      'Authorization': 'Token $token',
+    });
+    print(_templates);
+    if (res.statusCode == 200) {
+      var json = jsonDecode(res.body);
+      LocationeSensor location = LocationeSensor.fromJson(json);
+      return location;
+    } else {
+      return null;
+    }
+  }
+
+  Future<List<ProjectTemplate>> fetchProjects() async {
+    var box = await Hive.openBox(tokenBox);
+    final token = box.get("token") as String?;
+    final response = await http.get(
+      Uri.parse('http://127.0.0.1:8000/user/template/'),
+      headers: {'Authorization': 'Token $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<ProjectTemplate> templates = [];
+      for (var item in data) {
+        templates.add(ProjectTemplate.fromJson(item));
+      }
+      setState(() {
+        _templates = templates;
+      });
+      return templates;
+    } else {
+      throw Exception('Failed to load devices');
     }
   }
 
@@ -184,15 +203,53 @@ class _ViewLocalizationState extends State<ViewLocalization> {
     }
   }
 
+  Future<void> _SensorLocation() async {
+    try {
+      var box = await Hive.openBox(tokenBox);
+      final token = box.get("token") as String?;
+      final fetchedSensorLocation = await getSensorLocations(token!);
+      setState(() {
+        sensorLocation = fetchedSensorLocation;
+      });
+
+      print('Locations: ${sensorLocation?.locations}');
+
+      if (sensorLocation?.locations != null &&
+          sensorLocation!.locations!.isNotEmpty) {
+        SensorArray = sensorLocation!.getLatLngList();
+
+        if (SensorArray.isNotEmpty) {
+          SensorArray.add(SensorArray.first);
+          LatLng defaultCenter = SensorArray.first;
+          LatLng center =
+              SensorArray.isNotEmpty ? SensorArray.first : defaultCenter;
+          mapController.move(center, 10.0);
+        } else {
+          LatLng defaultCenter = LatLng(0.0, 0.0);
+          mapController.move(defaultCenter, 10.0);
+          print('Location array is empty.');
+        }
+      } else {
+        print('No locations available.');
+      }
+    } catch (e) {
+      print('Failed to load locations: $e');
+    }
+  }
+
   final MapController mapController = MapController();
   double circleRadius = 10.0;
   bool showCircle = true;
   Position? currentLocation;
   Locationes? locationes;
   Location? location;
+  LocationeSensor? sensorLocation;
   LocationeDevice? deviceLocation;
+  List<LatLng> SensorArray = [];
+  List<Color> SensorColor = [];
   List<LatLng> locationArray = [];
   List<LatLng> DeviceArray = [];
+  String? _selectedTemplate;
 
   bool hidePolylines =
       false; // Variable para controlar la visibilidad de las polilíneas
@@ -202,13 +259,14 @@ class _ViewLocalizationState extends State<ViewLocalization> {
   @override
   void initState() {
     super.initState();
+    futureProjects = fetchProjects();
     getLocation();
     _loadData();
   }
 
   Future<void> _loadData() async {
     // Código para cargar tus datos existentes
-
+    await _SensorLocation();
     await _fetchLocation();
     await _DeviceLocation();
   }
@@ -373,20 +431,36 @@ class _ViewLocalizationState extends State<ViewLocalization> {
                         ),
                       if (!hideMarkers)
                         MarkerLayer(
-                          markers: DeviceArray.map(
-                            (point) => Marker(
-                              width: circleRadius * 2,
-                              height: circleRadius * 2,
-                              point: point,
-                              builder: (ctx) => Container(
-                                child: Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
-                                  size: circleRadius * 2,
+                          markers: [
+                            ...DeviceArray.map(
+                              (point) => Marker(
+                                width: circleRadius * 2,
+                                height: circleRadius * 2,
+                                point: point,
+                                builder: (ctx) => Container(
+                                  child: Icon(
+                                    Icons.location_on,
+                                    color: Colors.red,
+                                    size: circleRadius * 2,
+                                  ),
                                 ),
                               ),
                             ),
-                          ).toList(),
+                            ...SensorArray.map(
+                              (point) => Marker(
+                                width: circleRadius * 2,
+                                height: circleRadius * 2,
+                                point: point,
+                                builder: (ctx) => Container(
+                                  child: Icon(
+                                    Icons.location_on,
+                                    color: Colors.blue,
+                                    size: circleRadius * 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                     ],
                   ),

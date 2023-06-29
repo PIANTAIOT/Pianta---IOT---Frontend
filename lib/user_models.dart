@@ -1,38 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-/*
-class UserRegister {
-  late String email;
-  late String username;
-  late String password;
-  UserRegister({required this.email, required this.username, required this.password});
-}
 
-class UserProvider with ChangeNotifier {
-  late  UserRegister _userRegister = UserRegister(email: '', username: '', password: '');
-  UserRegister get user => _userRegister;
-
-  set email(String value) {
-    _userRegister.email = value;
-    notifyListeners();
-  }
-
-  set username(String value) {
-    _userRegister.username = value;
-    notifyListeners();
-  }
-
-  set password(String value) {
-    _userRegister.password = value;
-    notifyListeners();
-  }
-
-  void resetUser() {
-    _userRegister = UserRegister(email: '', username: '', password: '');
-    notifyListeners();
-  }
-}
-*/
 //clase usuario, los datos enviados por los guarda aca para mostrarlos en la aplicacion
 class User {
   int? id;

@@ -120,7 +120,7 @@ class _NewDeviceState extends State<NewDevice> {
                 TextButton(
                   child: const Text('OK'),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(templateId);
                   },
                 ),
               ],

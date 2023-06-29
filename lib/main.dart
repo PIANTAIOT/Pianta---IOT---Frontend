@@ -6,11 +6,6 @@ import 'package:pianta/constants.dart';
 import 'package:pianta/user_models.dart';
 import 'register/login.dart';  
 
-//import 'package:flutter_bloc/flutter_bloc.dart';
-//import 'package:flutter_riverpod/flutter_riverpod.dart';
-//import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-//import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
@@ -25,13 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      /*
-       routes: {
-         // rutas existentes...
-         '/reset_password_confirm/:uidb64/:token': (),
-         // '/password_reset_complete': (context) => const mensaje(),
-       },
-       */
+
 
                     
       debugShowCheckedModeBanner: false,
