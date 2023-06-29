@@ -9,6 +9,8 @@ import 'package:pianta/register/create_newpassword.dart';
 import 'package:pianta/register/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../UrlBackend.dart';
+
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
 
@@ -26,7 +28,7 @@ class _SignUpState extends State<SignUp> {
 
     // Configuración de la instancia Dio
     BaseOptions options = BaseOptions(
-      baseUrl: 'http://127.0.0.1:8000/',
+      baseUrl: '$urlpianta/',
       connectTimeout: 5000,
       receiveTimeout: 5000,
     );
@@ -57,7 +59,7 @@ class _SignUpState extends State<SignUp> {
       // Obtener el token CSRF de la cookie
       String token = await _getCsrfToken();
 
-      String url = "http://127.0.0.1:8000/user/auth/send-registration-email/";
+      String url = "$urlpianta/user/auth/send-registration-email/";
 
 
 // Incluir el valor de la cookie CSRF en los encabezados de la solicitud
@@ -97,7 +99,7 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController codeController = TextEditingController();
   Future<void> validateRegistrationToken(
       BuildContext context, String token) async {
-    final url = Uri.parse('http://127.0.0.1:8000/user/auth/validate_token/');
+    final url = Uri.parse('$urlpianta/user/auth/validate_token/');
     final headers = {'Content-Type': 'application/json'};
     final body = jsonEncode({'token': token});
     try {
@@ -243,7 +245,7 @@ class _SignUpState extends State<SignUp> {
   //TextEditingController comfirmPassword = TextEditingController();
   Future<void> _checkEmailExists(String email) async {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/user/auth/RegisterView/'),
+      Uri.parse('$urlpianta/user/auth/RegisterView/'),
       body: {
         'email': email,
       },

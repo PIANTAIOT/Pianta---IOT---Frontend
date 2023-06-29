@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:pianta/UrlBackend.dart';
 import 'package:pianta/modelmaps.dart';
 
-const baseUrl = "http://127.0.0.1:8000";
+
 
 Future<Locationes?> getLocationes(String token) async {
-  var url = Uri.parse("$baseUrl/user/project/"); // Actualiza la URL a la ruta correspondiente para obtener la ubicación del proyecto
+  var url = Uri.parse("$urlpianta/user/project/"); // Actualiza la URL a la ruta correspondiente para obtener la ubicación del proyecto
   var res = await http.get(url, headers: {
     'Authorization': 'Token $token',
   });
@@ -26,7 +27,7 @@ Future<String?> getProjectLocation(String token) async {
 
 
 Future<LocationeDevice?> getDeviceLocationes(String token) async {
-  var url = Uri.parse("$baseUrl/user/devices/");
+  var url = Uri.parse("$urlpianta/user/devices/");
   var res = await http.get(url, headers: {
     'Authorization': 'Token $token',
   });

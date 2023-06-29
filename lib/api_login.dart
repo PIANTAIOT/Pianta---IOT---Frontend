@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
 import 'package:pianta/user_models.dart';
+import 'UrlBackend.dart';
 import 'constants.dart';
 
-const baseUrl = "http://127.0.0.1:8000";
+
 //definimos la base de nuestro proyecto, localmente
 Future<dynamic> userAuth(String email, String password) async {
   //user auth valida los datos ingresados en el backend y realizamos un post para enviar los datos
@@ -13,7 +14,7 @@ Future<dynamic> userAuth(String email, String password) async {
     "email": email,
     "password": password,
   };
-  var url = Uri.parse("$baseUrl/user/auth/loggeo/");
+  var url = Uri.parse("$urlpianta/user/auth/loggeo/");
   var res = await http.post(url, body: body);
 
   print(res.body);
@@ -42,7 +43,7 @@ Future<dynamic> userAuth(String email, String password) async {
 
 Future<User?> getUser(String token) async {
   //traemos los datos que guardamos de usuario
-  var url = Uri.parse("$baseUrl/user/auth/user/");
+  var url = Uri.parse("$urlpianta/user/auth/user/");
   var res = await http.get(url, headers: {
     'Authorization': 'Token $token',
   });
@@ -70,7 +71,7 @@ Future<String?> getLastLogin(String token) async {
   var box = await Hive.openBox(tokenBox);
   final token = box.get("token") as String?;
   //llamamos especificamente la ultima vez que el usuario se a autenticado
-  var url = Uri.parse("$baseUrl/user/auth/user/");
+  var url = Uri.parse("$urlpianta/user/auth/user/");
   var res = await http.get(url, headers: {
     'Authorization': 'Token ${token}',
   });
@@ -87,7 +88,7 @@ print(res.body);
 }
 Future<void> logOut(String token) async {
   //llamamos la api de logout
-  var url = Uri.parse("$baseUrl/user/auth/logout/");
+  var url = Uri.parse("$urlpianta/user/auth/logout/");
   var res = await http.post(url, headers: {
     'Authorization': 'Token ${token}',
   });

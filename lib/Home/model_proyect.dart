@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:pianta/Funciones/constantes.dart';
 import 'package:pianta/MyDevices/My_Devices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../UrlBackend.dart';
 import '../constants.dart';
 import 'new_project.dart';
 import 'package:uuid/uuid.dart';
@@ -50,7 +51,7 @@ Future<List<Project>> fetchProjects() async {
   var box = await Hive.openBox(tokenBox);
   final token = box.get("token") as String?;
   final response = await http.get(
-    Uri.parse('http://127.0.0.1:8000/user/project/'),
+    Uri.parse('$urlpianta/user/project/'),
     headers: {'Authorization': 'Token $token'},
   );
 

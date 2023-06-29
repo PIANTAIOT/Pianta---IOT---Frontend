@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:pianta/Funciones/constantes.dart';
 import 'package:pianta/MyDevices/My_Devices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../UrlBackend.dart';
 import '../constants.dart';
 import 'new_project.dart';
 import 'package:uuid/uuid.dart';
@@ -42,7 +43,7 @@ class _ProyectosState extends State<Proyectos> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response = await http.delete(
-      Uri.parse('http://127.0.0.1:8000/user/project/$projectId/'),
+      Uri.parse('$urlpianta/user/project/$projectId/'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -133,7 +134,7 @@ class _ProyectosState extends State<Proyectos> {
 
   Future<Project> shareProject(String idrandom) async {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/user/project/share/'),
+      Uri.parse('$urlpianta/user/project/share/'),
       body: {'idrandom': idrandom},
     );
   print(response.body);

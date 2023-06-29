@@ -6,6 +6,7 @@ import 'package:pianta/Home/model_proyect.dart';
 import 'package:pianta/Home/proyecto.dart';
 import 'package:pianta/maps/maps.dart';
 
+import '../UrlBackend.dart';
 import '../constants.dart';
 
 class Projects {
@@ -51,7 +52,7 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
   Future<void> _addProject(Projects project) async {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
-    final url = Uri.parse('http://127.0.0.1:8000/user/project/');
+    final url = Uri.parse('$urlpianta/user/project/');
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Token $token'

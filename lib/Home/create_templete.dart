@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:pianta/Home/template_model.dart';
 import 'package:pianta/Home/templates.dart';
 
+import '../UrlBackend.dart';
 import '../constants.dart';
 
 class CreateTemplate extends StatefulWidget {
@@ -38,7 +39,7 @@ class _CreateTemplateState extends State<CreateTemplate> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response =
-    await http.get(Uri.parse('http://127.0.0.1:8000/user/template/'),
+    await http.get(Uri.parse('$urlpianta/user/template/'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -62,7 +63,7 @@ class _CreateTemplateState extends State<CreateTemplate> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
 
-    var url = Uri.parse('http://127.0.0.1:8000/user/template/');
+    var url = Uri.parse('$urlpianta/user/template/');
 
     var data = {'opciones': opcionesSeleccionadas};
 
@@ -82,7 +83,7 @@ class _CreateTemplateState extends State<CreateTemplate> {
   Future<void> _addProject() async {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
-    final url = Uri.parse('http://127.0.0.1:8000/user/template/');
+    final url = Uri.parse('$urlpianta/user/template/');
     final headers = {'Content-Type': 'application/json', 'Authorization': 'Token $token'};
     final project = Project(
       name: _nameController.text,

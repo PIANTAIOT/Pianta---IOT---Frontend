@@ -13,6 +13,7 @@ import '../Funciones/constantes.dart';
 import '../Home/graphics_model.dart';
 import '../Home/proyecto.dart';
 import '../Home/templates.dart';
+import '../UrlBackend.dart';
 import '../constants.dart';
 import 'Dashboard.dart';
 import 'New_Devices.dart';
@@ -20,15 +21,39 @@ import 'New_Devices.dart';
 //ignore: camel_case_types
 //grafica circular
 
+
+
 class SensorData {
   final String name;
   final DateTime createdAt;
-  final double v12;
+  final double? v12;
+  final double? v11;
+  final double? v10;
+  final double? v9;
+  final double? v8;
+  final double? v7;
+  final double? v6;
+  final double? v5;
+  final double? v4;
+  final double? v3;
+  final double? v2;
+  final double? v1;
 
   SensorData({
     required this.name,
     required this.createdAt,
     required this.v12,
+    required this.v11,
+    required this.v10,
+    required this.v9,
+    required this.v8,
+    required this.v7,
+    required this.v6,
+    required this.v5,
+    required this.v4,
+    required this.v3,
+    required this.v2,
+    required this.v1,
   });
 
   factory SensorData.fromJson(Map<String, dynamic> json) {
@@ -36,9 +61,21 @@ class SensorData {
       name: json['name'],
       createdAt: DateTime.parse(json['created_at']),
       v12: json['v12'],
+      v11: json['v11'],
+      v10: json['v10'],
+      v9: json['v9'],
+      v8: json['v8'],
+      v7: json['v7'],
+      v6: json['v6'],
+      v5: json['v5'],
+      v4: json['v4'],
+      v3: json['v3'],
+      v2: json['v2'],
+      v1: json['v1'],
     );
   }
 }
+
 
 class Device {
   int id;
@@ -82,6 +119,9 @@ class DeviceGrafics extends StatefulWidget {
 
 class _DeviceGraficsState extends State<DeviceGrafics>
     with SingleTickerProviderStateMixin {
+
+  String lastData = 'v12';
+
   Device? selectedDevices;
   //late List<Device> devices;
   bool isLoading = false;
@@ -89,10 +129,11 @@ class _DeviceGraficsState extends State<DeviceGrafics>
   late AnimationController _animationController;
   late Animation<double> _animation;
   final maxProgress = 100.0;
-  double v12 = 0.0;
-  SensorData? selectedDevice;
-  Map<String, dynamic>? apiData;
   late Future<List<SensorData>> _fetchDevicesFuture;
+  Map<String, dynamic>? apiData;
+  SensorData? selectedDevice;
+  List<SensorData> device = [];
+
   List<Device> devices = <Device>[];
   final _formKey = GlobalKey<FormState>();
   String? _selectedTemplate;
@@ -109,7 +150,7 @@ class _DeviceGraficsState extends State<DeviceGrafics>
       templateId = selectedTemplate['id'].toString();
       print(templateId);
       final response = await http.put(
-        Uri.parse('http://127.0.0.1:8000/user/devices/${widget.iddevice}/${widget.idproject}/'),
+        Uri.parse('$urlpianta/user/devices/${widget.iddevice}/${widget.idproject}/'),
         headers: {
           'Authorization': 'Token $token',
           'Content-Type': 'application/json',
@@ -139,7 +180,7 @@ class _DeviceGraficsState extends State<DeviceGrafics>
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
 
-    final url = Uri.parse('http://127.0.0.1:8000/user/template/');
+    final url = Uri.parse('$urlpianta/user/template/');
     final response = await http.get(
       url,
       headers: {'Authorization': 'Token $token'},
@@ -159,7 +200,7 @@ class _DeviceGraficsState extends State<DeviceGrafics>
     final token = box.get("token") as String?;
 
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.template}/'),
+      Uri.parse('$urlpianta/user/graphics/${widget.template}/'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -173,77 +214,82 @@ class _DeviceGraficsState extends State<DeviceGrafics>
       throw Exception('Failed to load project list');
     }
   }
-
-  Future<void> _fetchData() async {
-    try {
-      final response = await http
-          .get(Uri.parse('http://127.0.0.1:8000/user/datos-sensores/v12/'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          apiData = data;
-        });
-      } else {
-        // Handle the error
-      }
-    } catch (e) {
-      // Handle the error
-    }
-  }
-
-  void handleDeviceSelection(Device device) {
-    setState(() {
-      selectedDevices = device;
-    });
-  }
-
-  Future<List<SensorData>> fetchDevices() async {
-    final response = await http
-        .get(Uri.parse('http://127.0.0.1:8000/user/datos-sensores/v12/'));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final List<SensorData> devices = [];
-      for (var item in data) {
-        devices.add(SensorData.fromJson(item));
-      }
-      setState(() {
-        device = devices;
-        selectedDevice = devices.isNotEmpty ? devices[0] : null;
-      });
-      return devices;
-    } else {
-      throw Exception('Failed to load devices');
-    }
-  }
-
   @override
   void initState() {
+    futureGraphics = fetchGraphics();
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 3000));
     _animation =
-        Tween<double>(begin: 0, end: maxProgress).animate(_animationController)
-          ..addListener(() {
-            setState(() {});
-          });
-    _fetchData();
-    futureGraphics = fetchGraphics();
-    _fetchDevicesFuture = fetchDevices();
+    Tween<double>(begin: 0, end: maxProgress).animate(_animationController)
+      ..addListener(() {
+        setState(() {});
+      });
+    _fetchData(lastData);
+    _fetchDevicesFuture = fetchDevices(lastData);
     super.initState();
 
-    // Programamos la actualización cada 5 segundos
-    Timer.periodic(const Duration(seconds: 5), (timer) {
+    Timer.periodic(const Duration(seconds: 10), (timer) {
       setState(() {
-        _fetchDevicesFuture = fetchDevices();
+        _fetchDevicesFuture = fetchDevices(lastData);
+        _fetchData(lastData);
       });
     });
     _getTemplates();
   }
+
 
   @override
   void dispose() {
     // Cancelamos el timer cuando se destruye el widget
     super.dispose();
   }
+
+@override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+
+  _fetchData(lastData);
+  fetchDevices(lastData);
+}
+
+Future<void> _fetchData(String lastData) async {
+  try {
+    final response = await http.get(Uri.parse(
+        '$urlpianta/user/datos-sensores/$lastData/${widget.template}/'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        apiData = data;
+      });
+    } else {
+      // Handle the error
+    }
+  } catch (e) {
+    // Handle the error
+  }
+}
+
+
+Future<List<SensorData>> fetchDevices(String lastData) async {
+  final response = await http.get(Uri.parse(
+      '$urlpianta/user/datos-sensores/$lastData/${widget.template}/'));
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final List<SensorData> devices = [];
+    for (var item in data) {
+      devices.add(SensorData.fromJson(item));
+    }
+    setState(() {
+      device = devices;
+    });
+    return devices;
+  } else {
+    throw Exception('Failed to load devices');
+  }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -321,6 +367,41 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                         itemCount: projects.length,
                         itemBuilder: (BuildContext context, int index) {
                           final project = projects[index];
+                          final lastData = 'v${project.ports}';
+                          fetchDevices(lastData);
+                          _fetchData(lastData);
+                          print(lastData);
+                          final lastDatadates = device.isNotEmpty ? device.last : null;
+                          double? valueToDisplay = 0.0;
+                          print(valueToDisplay);
+                          // Comparar el valor de lastData con los campos de SensorData
+                          if (lastData == 'v12') {
+                            valueToDisplay = lastDatadates?.v12;
+                          } else if (lastData == 'v11') {
+                            valueToDisplay = lastDatadates?.v11;
+                          } else if (lastData == 'v10') {
+                            valueToDisplay = lastDatadates?.v10;
+                          } else if (lastData == 'v9') {
+                            valueToDisplay = lastDatadates?.v9;
+                          } else if (lastData == 'v8') {
+                            valueToDisplay = lastDatadates?.v8;
+                          } else if (lastData == 'v7') {
+                            valueToDisplay = lastDatadates?.v7;
+                          }else if (lastData == 'v6') {
+                            valueToDisplay = lastDatadates?.v6;
+                          }else if (lastData == 'v5') {
+                            valueToDisplay = lastDatadates?.v5;
+                          }else if (lastData == 'v4') {
+                            valueToDisplay = lastDatadates?.v4;
+                          }else if (lastData == 'v3') {
+                            valueToDisplay = lastDatadates?.v3;
+                          }else if (lastData == 'v2') {
+                            valueToDisplay = lastDatadates?.v2;
+                          }else if (lastData == 'v1') {
+                            valueToDisplay = lastDatadates?.v1;
+                          } else {
+                            valueToDisplay = 0.0;
+                          }
                           final title = project.titlegraphics;
                           if (project.is_circular == true) {
                             return Container(
@@ -335,15 +416,17 @@ class _DeviceGraficsState extends State<DeviceGrafics>
                                         Center(
                                           child: CustomPaint(
                                             painter: Circular_graphics(
-                                                _animation.value),
+                                                valueToDisplay ?? 0.0),
                                             child: SizedBox(
                                               width: 200,
                                               height: 200,
                                               child: Center(
-                                                child: Text(
-                                                  '0 °C',
-                                                  style: TextStyle(
-                                                    fontSize: 50,
+                                                child: valueToDisplay == null
+                                                    ? const Text('')
+                                                    : Text(
+                                                  '$valueToDisplay °C',
+                                                  style: const TextStyle(
+                                                    fontSize: 30,
                                                   ),
                                                 ),
                                               ),
@@ -580,7 +663,7 @@ class Linea_Graphicss extends StatelessWidget {
 
 Future<List<SensorData>> fetchSensorData() async {
   final response = await http
-      .get(Uri.parse('http://127.0.0.1:8000/user/datos-sensores/v12/'));
+      .get(Uri.parse('h$urlpianta/user/datos-sensores/v12/'));
   if (response.statusCode == 200) {
     final jsonData = json.decode(response.body);
     final sensorDataList =

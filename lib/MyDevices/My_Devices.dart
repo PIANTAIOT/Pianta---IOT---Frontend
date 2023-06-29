@@ -8,6 +8,7 @@ import 'package:pianta/MyDevices/DeviceGrafics.dart';
 import 'dart:convert';
 import 'package:pianta/MyDevices/New_Devices.dart';
 import 'package:pianta/Funciones/constantes.dart';
+import '../UrlBackend.dart';
 import '../maps/mapavisualizar.dart';
 import 'package:collection/collection.dart';
 import '../constants.dart';
@@ -65,7 +66,7 @@ class _MyDeviceState extends State<MyDevice> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/template/'),
+      Uri.parse('$urlpianta/user/template/'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -99,7 +100,7 @@ class _MyDeviceState extends State<MyDevice> {
       },
     );
     if (confirm == true) {
-      final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/devices/$id/${widget.id}/'),
+      final response = await http.delete(Uri.parse('$urlpianta/user/devices/$id/${widget.id}/'),
       );
 
       if (response.statusCode == 200) {
@@ -118,7 +119,7 @@ class _MyDeviceState extends State<MyDevice> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response =
-    await http.get(Uri.parse('http://127.0.0.1:8000/user/project/${widget.id}/devices/'),
+    await http.get(Uri.parse('$urlpianta/user/project/${widget.id}/devices/'),
       headers: {'Authorization': 'Token $token'},);
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
@@ -171,7 +172,7 @@ class _MyDeviceState extends State<MyDevice> {
                             onPressed: () async {
                               var box = await Hive.openBox(tokenBox);
                               final token = box.get("token") as String?;
-                              final url = Uri.parse('http://127.0.0.1:8000/user/template/');
+                              final url = Uri.parse('$urlpianta/user/template/');
                               final response = await http.get(url, headers:  {'Authorization': 'Token $token'},);
                               if (response.statusCode == 200 &&
                                   json.decode(response.body).isNotEmpty) {
@@ -253,7 +254,7 @@ class _MyDeviceState extends State<MyDevice> {
                                 var box = await Hive.openBox(tokenBox);
                                 final token = box.get("token") as String?;
 
-                                final url = Uri.parse('http://127.0.0.1:8000/user/template/');
+                                final url = Uri.parse('$urlpianta/user/template/');
                                 final response = await http.get(url, headers: {'Authorization': 'Token $token'});
 
                                 if (response.statusCode == 200 && json.decode(response.body).isNotEmpty) {

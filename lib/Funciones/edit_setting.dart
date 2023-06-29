@@ -4,6 +4,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:pianta/Home/settings.dart';
 import 'package:pianta/register/forgot_password.dart';
 import 'package:http/http.dart' as http;
+import '../UrlBackend.dart';
 import '../api_login.dart';
 import '../constants.dart';
 
@@ -48,7 +49,7 @@ class _EditInformationState extends State<EditInformation> {
 
   Future<void> updateUserProfile(
       String username, String email, BuildContext context) async {
-    final url = Uri.parse('http://127.0.0.1:8000/user/auth/user/edit/');
+    final url = Uri.parse('$urlpianta/user/auth/user/edit/');
     final box = await Hive.openBox(tokenBox);
     final token = box.get('token') as String?;
 

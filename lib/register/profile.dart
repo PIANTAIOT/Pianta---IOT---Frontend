@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pianta/register/create_password.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../UrlBackend.dart';
 import 'login.dart';
 
 class profile extends StatefulWidget {
@@ -24,7 +25,7 @@ class _profileState extends State<profile> {
 
 
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/user/auth/RegisterView/'),
+      Uri.parse('$urlpianta/user/auth/RegisterView/'),
       body: {
         'email': email,
         'username': username,
@@ -266,7 +267,7 @@ void createUser(BuildContext context) async {
   final storedUsername = prefs.getString('username');
   try {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/user/auth/RegisterView/'),
+      Uri.parse('$urlpianta/user/auth/RegisterView/'),
       body: {
         'email': storedEmail,
         'username': storedUsername,

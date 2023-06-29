@@ -8,8 +8,11 @@ class TempCreateGraficsEdit extends StatefulWidget {
   final String title;
   final String name;
   final String alias;
+  final String port;
+  final int idTemplate;
+  final String nameTemplate;
 
-  const TempCreateGraficsEdit({Key? key, required this.title, required this.name, required this.alias}) : super(key: key);
+  const TempCreateGraficsEdit({Key? key, required this.title, required this.nameTemplate, required this.idTemplate, required this.port, required this.name, required this.alias}) : super(key: key);
 
   @override
   State<TempCreateGraficsEdit> createState() => _TempCreateGraficsEditState();
@@ -111,7 +114,7 @@ class _TempCreateGraficsEditState extends State<TempCreateGraficsEdit> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>  VirtualPinDatastreamEdit(name: widget.name, alias: widget.alias,),
+                                    builder: (context) =>  VirtualPinDatastreamEdit(name: widget.name, alias: widget.alias, port: widget.port, idTemplate: widget.idTemplate, nameTemplate: widget.nameTemplate,),
                                   ),
                                 );
                               },

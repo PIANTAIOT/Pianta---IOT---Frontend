@@ -62,8 +62,11 @@ class Sensor {
 class VirtualPinDatastreamEdit extends StatefulWidget {
   final String name;
   final String alias;
+  final String port;
+  final int idTemplate;
+  final String nameTemplate;
   //final String location;
-  const VirtualPinDatastreamEdit({Key? key, required this.name, required this.alias}) : super(key: key);
+  const VirtualPinDatastreamEdit({Key? key, required this.name, required this.nameTemplate, required this.idTemplate, required this.port, required this.alias}) : super(key: key);
 
   @override
   State<VirtualPinDatastreamEdit> createState() => _VirtualPinDatastreamEditState();
@@ -80,8 +83,8 @@ class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
 
   final _locationController = TextEditingController();
   String? _selectedValue;
-  List<Sensor> _sensorData = [];
-  List<String> _vValues = [
+  final List<Sensor> _sensorData = [];
+  final List<String> _vValues = [
     'v1',
     'v2',
     'v3',
@@ -233,31 +236,22 @@ class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
                                 Flexible(
                                     flex: 1,
                                     child: Column(
-                                      children: [
+                                      children:  [
                                         const SizedBox(height: 18.0),
-                                        const Text(
+                                        Text(
                                           'PIN',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14.0,
                                           ),
                                         ),
-                                        const SizedBox(height: 16.0),
-                                        DropdownButtonFormField<String>(
-                                          value: _selectedValue,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _selectedValue = value;
-                                            });
-                                          },
-                                          items: _vValues
-                                              .map<DropdownMenuItem<String>>(
-                                                  (value) {
-                                                return DropdownMenuItem<String>(
-                                                  value: value,
-                                                  child: Text(value),
-                                                );
-                                              }).toList(),
+                                        SizedBox(height: 16.0),
+                                        Text(
+                                          'Port: ${widget.port}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20.0,
+                                          ),
                                         ),
                                       ],
                                     )),
@@ -314,7 +308,7 @@ class _VirtualPinDatastreamEditState extends State<VirtualPinDatastreamEdit> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                        Templates(),
+                                        WebDashboard(idTemplate: widget.idTemplate, nameTemplate: widget.nameTemplate),
                                       ),
                                     );
                                   },

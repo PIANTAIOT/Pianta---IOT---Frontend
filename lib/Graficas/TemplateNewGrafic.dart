@@ -8,6 +8,7 @@ import 'package:pianta/MyDevices/Dashboard.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../Home/graphics_model.dart';
+import '../UrlBackend.dart';
 import '../constants.dart';
 
 
@@ -21,6 +22,7 @@ class DataPoint {
   //bool is_circular;
   final String ports;
   final String color;
+
 
   DataPoint({required this.titlegraphics, required this.namegraphics, required this.aliasgraphics,     required this.ports, required this.id, required this.location, required this.color});
 
@@ -40,7 +42,8 @@ class DataPoint {
 
 class TempCreateGrafics extends StatefulWidget {
   final int id;
-  const TempCreateGrafics({Key? key, required this.id}) : super(key: key);
+  final String nameTemplate;
+  const TempCreateGrafics({Key? key, required this.id, required this.nameTemplate}) : super(key: key);
 
   @override
   State<TempCreateGrafics> createState() => _TempCreateGraficsState();
@@ -72,7 +75,7 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}'),
+      Uri.parse('$urlpianta/user/graphics/${widget.id}'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -99,7 +102,7 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
       final response = await http.post(
 
 
-        Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/'),
+        Uri.parse('$urlpianta/user/graphics/${widget.id}/'),
         body: {
           'titlegraphics': storedTitle,
           'namegraphics': selectedGraph.namegraphics,
@@ -252,7 +255,7 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>  WebDashboard(id: widget.id, name: ''),
+                                builder: (context) =>  WebDashboard(idTemplate: widget.id, nameTemplate: widget.nameTemplate),
                               ),
                             );
                           }
@@ -270,7 +273,7 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>  WebDashboard(id: widget.id, name: ''),
+                              builder: (context) =>  WebDashboard(idTemplate: widget.id, nameTemplate: widget.nameTemplate),
                             ),
                           );
                         },
@@ -289,8 +292,8 @@ class _TempCreateGraficsState extends State<TempCreateGrafics> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => VirtualPinDatastream(id: widget.id,),
-                          ),
+                            builder: (context) => VirtualPinDatastream(id: widget.id, nameTemplate: widget.nameTemplate,
+                            ))
                         );
                       }
                     },

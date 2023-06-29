@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../UrlBackend.dart';
 import '../maps/mapadevice.dart';
 
 import '../constants.dart';
@@ -36,7 +37,7 @@ class _NewDeviceState extends State<NewDevice> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
 
-    final url = Uri.parse('http://127.0.0.1:8000/user/template/');
+    final url = Uri.parse('$urlpianta/user/template/');
     final response = await http.get(
       url,
       headers: {'Authorization': 'Token $token'},
@@ -60,7 +61,7 @@ class _NewDeviceState extends State<NewDevice> {
 
   Future<void> _getDevices() async {
     final url =
-        Uri.parse('http://127.0.0.1:8000/user/project/${widget.id}/devices/');
+        Uri.parse('$urlpianta/user/project/${widget.id}/devices/');
     final response = await http.get(
       url,
     );
@@ -79,7 +80,7 @@ class _NewDeviceState extends State<NewDevice> {
     final token = box.get("token") as String?;
     if (_deviceNameController.text.isNotEmpty) {
       final url =
-          Uri.parse('http://127.0.0.1:8000/user/project/${widget.id}/devices/');
+          Uri.parse('$urlpianta/user/project/${widget.id}/devices/');
       String? templateId;
       if (_selectedTemplate != null) {
         // Busca el template seleccionado en la lista de templates para obtener su ID

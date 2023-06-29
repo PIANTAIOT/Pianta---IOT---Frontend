@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:pianta/register/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../UrlBackend.dart';
+
 
 // ignore: camel_case_types
 class forgot_password extends StatefulWidget {
@@ -227,7 +229,7 @@ class _forgot_passwordState extends State<forgot_password> {
     final storedEmails = prefs.getString('email');
      */
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/user/auth/password/resete/'),
+      Uri.parse('$urlpianta/user/auth/password/resete/'),
       body: {
         'email': emailController.text,
       },

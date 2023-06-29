@@ -6,22 +6,47 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:pianta/Graficas/TemplateNewGraficEdit.dart';
+import 'package:pianta/MyDevices/DeviceGrafics.dart';
 import 'package:pianta/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Funciones/constantes.dart';
 import '../Graficas/TemplateNewGrafic.dart';
 import '../Home/graphics_model.dart';
 import '../Home/template_model.dart';
+import '../UrlBackend.dart';
+
 
 class SensorData {
   final String name;
   final DateTime createdAt;
-  final double v12;
+  final double? v12;
+  final double? v11;
+  final double? v10;
+  final double? v9;
+  final double? v8;
+  final double? v7;
+  final double? v6;
+  final double? v5;
+  final double? v4;
+  final double? v3;
+  final double? v2;
+  final double? v1;
 
   SensorData({
     required this.name,
     required this.createdAt,
     required this.v12,
+    required this.v11,
+    required this.v10,
+    required this.v9,
+    required this.v8,
+    required this.v7,
+    required this.v6,
+    required this.v5,
+    required this.v4,
+    required this.v3,
+    required this.v2,
+    required this.v1,
   });
 
   factory SensorData.fromJson(Map<String, dynamic> json) {
@@ -29,14 +54,26 @@ class SensorData {
       name: json['name'],
       createdAt: DateTime.parse(json['created_at']),
       v12: json['v12'],
+      v11: json['v11'],
+      v10: json['v10'],
+      v9: json['v9'],
+      v8: json['v8'],
+      v7: json['v7'],
+      v6: json['v6'],
+      v5: json['v5'],
+      v4: json['v4'],
+      v3: json['v3'],
+      v2: json['v2'],
+      v1: json['v1'],
     );
   }
 }
 
 class WebDashboard extends StatefulWidget {
-  final int id;
-  final String name;
-  const WebDashboard({Key? key, required this.id, required this.name}) : super(key: key);
+  final int idTemplate;
+  final String nameTemplate;
+  const WebDashboard({Key? key, required this.idTemplate, required this.nameTemplate})
+      : super(key: key);
 
   @override
   _WebDashboardState createState() => _WebDashboardState();
@@ -44,6 +81,7 @@ class WebDashboard extends StatefulWidget {
 
 class _WebDashboardState extends State<WebDashboard>
     with SingleTickerProviderStateMixin {
+  String lastData = 'v12';
   final graphicstemplate = graphics = [];
   late Future<List<GrapchisTemplate>> futureGraphics;
 
@@ -58,7 +96,10 @@ class _WebDashboardState extends State<WebDashboard>
   Map<String, dynamic>? apiData;
   SensorData? selectedDevice;
   List<SensorData> device = [];
-  double v12 = 0.0;
+
+
+
+
   @override
   void initState() {
     super.initState();
@@ -79,13 +120,14 @@ class _WebDashboardState extends State<WebDashboard>
     )..addListener(() {
         setState(() {});
       });
-    _fetchData();
-    _fetchDevicesFuture = fetchDevices();
+    _fetchData(lastData);
+    _fetchDevicesFuture = fetchDevices(lastData);
     super.initState();
 
     Timer.periodic(const Duration(seconds: 10), (timer) {
       setState(() {
-        _fetchDevicesFuture = fetchDevices();
+        _fetchDevicesFuture = fetchDevices(lastData);
+        _fetchData(lastData);
       });
     });
   }
@@ -95,11 +137,18 @@ class _WebDashboardState extends State<WebDashboard>
     // Cancelamos el timer cuando se destruye el widget
     super.dispose();
   }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-  Future<void> _fetchData() async {
+    _fetchData(lastData);
+    fetchDevices(lastData);
+  }
+
+  Future<void> _fetchData(String lastData) async {
     try {
-      final response = await http
-          .get(Uri.parse('http://127.0.0.1:8000/user/datos-sensores/v12/${widget.id}/'));
+      final response = await http.get(Uri.parse(
+          '$urlpianta/user/datos-sensores/$lastData/${widget.idTemplate}/'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
@@ -112,9 +161,12 @@ class _WebDashboardState extends State<WebDashboard>
       // Handle the error
     }
   }
-  Future<List<SensorData>> fetchDevices() async {
-    final response = await http
-        .get(Uri.parse('http://127.0.0.1:8000/user/datos-sensores/v12/${widget.id}/'));
+
+
+  Future<List<SensorData>> fetchDevices(String lastData) async {
+    final response = await http.get(Uri.parse(
+        '$urlpianta/user/datos-sensores/$lastData/${widget.idTemplate}/'));
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final List<SensorData> devices = [];
@@ -123,13 +175,13 @@ class _WebDashboardState extends State<WebDashboard>
       }
       setState(() {
         device = devices;
-        selectedDevice = devices.isNotEmpty ? devices[0] : null;
       });
       return devices;
     } else {
       throw Exception('Failed to load devices');
     }
   }
+
   Offset? finalPosition;
   List<Widget> duplicatedCards = [];
 
@@ -138,7 +190,7 @@ class _WebDashboardState extends State<WebDashboard>
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}'),
+      Uri.parse('$urlpianta/user/graphics/${widget.idTemplate}'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -157,7 +209,7 @@ class _WebDashboardState extends State<WebDashboard>
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/template/'),
+      Uri.parse('$urlpianta/user/template/'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -206,7 +258,7 @@ class _WebDashboardState extends State<WebDashboard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.name,
+                            widget.nameTemplate,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 24,
@@ -230,8 +282,10 @@ class _WebDashboardState extends State<WebDashboard>
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                           WebDashboard(id:widget.id, name: widget.name,),
+                                      builder: (context) => WebDashboard(
+                                        idTemplate: widget.idTemplate,
+                                        nameTemplate: widget.nameTemplate,
+                                      ),
                                     ),
                                   );
                                 },
@@ -272,7 +326,7 @@ class _WebDashboardState extends State<WebDashboard>
                               child: Column(
                                 children: [
                                   Text(
-                                    widget.name,
+                                    widget.nameTemplate,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 24,
@@ -311,7 +365,8 @@ class _WebDashboardState extends State<WebDashboard>
                                                             child: Text(
                                                               '0 °C',
                                                               style: TextStyle(
-                                                                  fontSize: 30), //tamaño del numero de la circular al hacer la animacion de movimiento
+                                                                  fontSize:
+                                                                      30), //tamaño del numero de la circular al hacer la animacion de movimiento
                                                             ),
                                                           ),
                                                         ),
@@ -322,13 +377,16 @@ class _WebDashboardState extends State<WebDashboard>
                                                                 _animation
                                                                     .value),
                                                         child: const SizedBox(
-                                                          width: 200, //tamaño del recuadro de click en card principal
-                                                          height: 200, //tamaño del recuadro de click en card principal
+                                                          width:
+                                                              200, //tamaño del recuadro de click en card principal
+                                                          height:
+                                                              200, //tamaño del recuadro de click en card principal
                                                           child: Center(
                                                             child: Text(
                                                               '0 °C',
                                                               style: TextStyle(
-                                                                  fontSize: 30), //tamaño de nuemro en card circular en la card principal de selección
+                                                                  fontSize:
+                                                                      30), //tamaño de nuemro en card circular en la card principal de selección
                                                             ),
                                                           ),
                                                         ),
@@ -362,15 +420,19 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     MaterialPageRoute(
                                                                       builder:
                                                                           (context) =>
-                                                                               TempCreateGrafics(id: widget.id,),
+                                                                              TempCreateGrafics(
+                                                                        id: widget.idTemplate, nameTemplate: widget.nameTemplate,
+                                                                      ),
                                                                     ),
                                                                   );
                                                                 },
                                                                 child: Card(
                                                                   child:
                                                                       SizedBox(
-                                                                    width: 250, //tamaño card que se duplica
-                                                                    height: 250, //tamaño card que se duplica
+                                                                    width:
+                                                                        250, //tamaño card que se duplica
+                                                                    height:
+                                                                        250, //tamaño card que se duplica
                                                                     child:
                                                                         Stack(
                                                                       children: [
@@ -414,8 +476,10 @@ class _WebDashboardState extends State<WebDashboard>
                                                         child: Linea_Graphics(),
                                                       ),
                                                       child: SizedBox(
-                                                        height: 180, //Tamaño de la grafica lineal en la card de eleccion pricipal
-                                                        width: 180, //Tamaño de la grafica lineal en la card de eleccion pricipal
+                                                        height:
+                                                            180, //Tamaño de la grafica lineal en la card de eleccion pricipal
+                                                        width:
+                                                            180, //Tamaño de la grafica lineal en la card de eleccion pricipal
                                                         child: Linea_Graphics(),
                                                       ),
                                                       childWhenDragging:
@@ -446,9 +510,9 @@ class _WebDashboardState extends State<WebDashboard>
                                                                       .push(
                                                                     context,
                                                                     MaterialPageRoute(
-                                                                      builder:
-                                                                          (context) =>
-                                                                               TempCreateGrafics(id: widget.id),
+                                                                      builder: (context) =>
+                                                                          TempCreateGrafics(
+                                                                              id: widget.idTemplate, nameTemplate: widget.nameTemplate),
                                                                     ),
                                                                   );
                                                                 },
@@ -476,8 +540,21 @@ class _WebDashboardState extends State<WebDashboard>
                                                 List<GrapchisTemplate>>(
                                               future: futureGraphics,
                                               builder: (context, snapshot) {
-
-
+                                                double? _selectedValue;
+                                                final List<double> _vValues = [
+                                                  1.0,
+                                                  2.0,
+                                                  3.0,
+                                                  4.0,
+                                                  5.0,
+                                                  6.0,
+                                                  7.0,
+                                                  8.0,
+                                                  9.0,
+                                                  10.0,
+                                                  11.0,
+                                                  12.0,
+                                                ];
 
                                                 TextEditingController
                                                     titleController =
@@ -491,8 +568,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                 final _formKey =
                                                     GlobalKey<FormState>();
                                                 if (snapshot.hasData) {
-                                                  final projects =
-                                                      snapshot.data!;
+                                                  final projects = snapshot.data!;
                                                   return GridView.builder(
                                                     gridDelegate:
                                                         SliverGridDelegateWithFixedCrossAxisCount(
@@ -521,32 +597,66 @@ class _WebDashboardState extends State<WebDashboard>
                                                     itemCount: projects.length,
                                                     itemBuilder:
                                                         (BuildContext context,
-                                                            int index) {
-
-                                                          final lastData = device.isNotEmpty ? device.last : null;
-                                                      final project = projects[index];
+                                                            int index)  {
+                                                      final project =
+                                                          projects[index];
+                                                        lastData = 'v${project.ports}';
+                                                        fetchDevices(lastData);
+                                                      _fetchData(lastData);
+                                                      print(lastData);
+                                                      final lastDatadates = device.isNotEmpty ? device.last : null;
+                                                      double? valueToDisplay = 0.0;
+                                                      print(valueToDisplay);
+                                                        // Comparar el valor de lastData con los campos de SensorData
+                                                        if (lastData == 'v12') {
+                                                          valueToDisplay = lastDatadates?.v12;
+                                                        } else if (lastData == 'v11') {
+                                                          valueToDisplay = lastDatadates?.v11;
+                                                        } else if (lastData == 'v10') {
+                                                          valueToDisplay = lastDatadates?.v10;
+                                                        } else if (lastData == 'v9') {
+                                                          valueToDisplay = lastDatadates?.v9;
+                                                        } else if (lastData == 'v8') {
+                                                          valueToDisplay = lastDatadates?.v8;
+                                                        } else if (lastData == 'v7') {
+                                                          valueToDisplay = lastDatadates?.v7;
+                                                        }else if (lastData == 'v6') {
+                                                          valueToDisplay = lastDatadates?.v6;
+                                                        }else if (lastData == 'v5') {
+                                                          valueToDisplay = lastDatadates?.v5;
+                                                        }else if (lastData == 'v4') {
+                                                          valueToDisplay = lastDatadates?.v4;
+                                                        }else if (lastData == 'v3') {
+                                                          valueToDisplay = lastDatadates?.v3;
+                                                        }else if (lastData == 'v2') {
+                                                          valueToDisplay = lastDatadates?.v2;
+                                                        }else if (lastData == 'v1') {
+                                                          valueToDisplay = lastDatadates?.v1;
+                                                        } else {
+                                                          valueToDisplay = 0.0;
+                                                        }
                                                       final title = project.titlegraphics;
                                                       if (project.is_circular ==
                                                           true) {
                                                         return Container(
                                                           height: 1200,
                                                           child:
-                                                          GestureDetector(
+                                                              GestureDetector(
                                                             onTap: () {
                                                               Navigator.push(
                                                                 context,
                                                                 MaterialPageRoute(
                                                                   builder:
                                                                       (context) =>
-                                                                      TempCreateGraficsEdit(
-                                                                        title: project
-                                                                            .titlegraphics,
-                                                                        name: project
-                                                                            .namegraphics,
-                                                                        alias: project
-                                                                            .aliasgraphics,
-                                                                            
-                                                                      ),
+                                                                          TempCreateGraficsEdit(
+                                                                    title: project
+                                                                        .titlegraphics,
+                                                                    name: project
+                                                                        .namegraphics,
+                                                                    alias: project
+                                                                        .aliasgraphics,
+                                                                            port: project.ports, nameTemplate: widget.nameTemplate, idTemplate: widget.idTemplate,
+                                                                  ),
                                                                 ),
                                                               );
                                                             },
@@ -558,51 +668,61 @@ class _WebDashboardState extends State<WebDashboard>
                                                                   children: [
                                                                     Center(
                                                                       child:
-                                                                      CustomPaint(
-                                                                        painter: Circular_graphics(
-                                                                            lastData?.v12 ?? 0.0),
-                                                                        child: SizedBox(
-                                                                          child: GestureDetector(
-                                                                            onTap: () {
-                                                                              if (_animationController.value ==
-                                                                                  maxProgress) {
-                                                                                _animationController.reverse();
-                                                                              } else {
-                                                                                _animationController.forward();
-                                                                              }
-                                                                            },
-                                                                            child: Center(
-                                                                              child: lastData == null
-                                                                                  ? const Text('No data available')
-                                                                                  : Text(
-                                                                                '${lastData.v12} °C',
-                                                                                style:
-                                                                                const TextStyle(fontSize: 30,),
+                                                                          CustomPaint(
+                                                                        painter:
+                                                                            Circular_graphics(valueToDisplay ?? 0.0),
+                                                                        child:
+                                                                            SizedBox(
+                                                                          child:
+                                                                              GestureDetector(
+                                                                            child:
+                                                                                Center(
+                                                                              child:
+                                                                              valueToDisplay == null
+                                                                                  ?  const Text('°C', style: TextStyle(
+                                                                                fontSize: 30,
                                                                               ),
+                                                                              )
+                                                                                  : Text(
+                                                                                '$valueToDisplay °C',
+                                                                                      style: const TextStyle(
+                                                                                        fontSize: 30,
+                                                                                      ),
+                                                                                    ),
                                                                             ),
                                                                           ),
                                                                         ),
                                                                       ),
                                                                     ),
                                                                     Wrap(
-                                                                      spacing: 16.0, // Espacio horizontal entre los elementos del Wrap
-                                                                      runSpacing: 8.0, // Espacio vertical entre las líneas de texto
+                                                                      spacing:
+                                                                          16.0, // Espacio horizontal entre los elementos del Wrap
+                                                                      runSpacing:
+                                                                          8.0, // Espacio vertical entre las líneas de texto
                                                                       children: [
                                                                         Text(
                                                                           title,
-                                                                          style: const TextStyle(
-                                                                            fontWeight: FontWeight.bold,
-                                                                            fontSize: 20,
+                                                                          style:
+                                                                              const TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            fontSize:
+                                                                                20,
                                                                           ),
-                                                                          textAlign: TextAlign.left,
+                                                                          textAlign:
+                                                                              TextAlign.left,
                                                                         ),
                                                                         Text(
                                                                           'Port: ${project.ports}',
-                                                                          style: TextStyle(
-                                                                            fontWeight: FontWeight.bold,
-                                                                            fontSize: 20,
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            fontSize:
+                                                                                20,
                                                                           ),
-                                                                          textAlign: TextAlign.center,
+                                                                          textAlign:
+                                                                              TextAlign.center,
                                                                         ),
                                                                       ],
                                                                     ),
@@ -610,7 +730,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                       top: 10,
                                                                       right: 10,
                                                                       child:
-                                                                      IconButton(
+                                                                          IconButton(
                                                                         icon: Icon(
                                                                             Icons.edit),
                                                                         onPressed:
@@ -624,7 +744,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                           // Acción para editar la tarjeta
                                                                           showDialog(
                                                                             context:
-                                                                            context,
+                                                                                context,
                                                                             builder:
                                                                                 (context) {
                                                                               return AlertDialog(
@@ -752,6 +872,29 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                             ),
                                                                                           ),
                                                                                           const SizedBox(height: 20),
+                                                                                          Text(
+                                                                                            'Elegir PIN',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 20),
+                                                                                          DropdownButtonFormField<double>(
+                                                                                            value: _selectedValue,
+                                                                                            onChanged: (value) {
+                                                                                              setState(() {
+                                                                                                _selectedValue = value!;
+                                                                                              });
+                                                                                            },
+                                                                                            items: _vValues.map<DropdownMenuItem<double>>((value) {
+                                                                                              return DropdownMenuItem<double>(
+                                                                                                value: value,
+                                                                                                child: Text('v$value'),
+                                                                                              );
+                                                                                            }).toList(),
+                                                                                          ),
+                                                                                          const SizedBox(height: 20),
                                                                                           Padding(
                                                                                             padding: const EdgeInsets.all(30),
                                                                                             child: Row(
@@ -779,7 +922,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                       var box = await Hive.openBox(tokenBox);
                                                                                                       final token = box.get("token") as String?;
                                                                                                       final response = await http.put(
-                                                                                                        Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'),
+                                                                                                        Uri.parse('$urlpianta/user/graphics/${widget.idTemplate}/${project.id}/'),
                                                                                                         headers: {
                                                                                                           'Authorization': 'Token $token',
                                                                                                           'Content-Type': 'application/json',
@@ -789,6 +932,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                           'titlegraphics': titleController.text,
                                                                                                           'namegraphics': nameController.text,
                                                                                                           'aliasgraphics': aliasController.text,
+                                                                                                          'ports': _selectedValue.toString(),
                                                                                                         }),
                                                                                                       );
                                                                                                       if (response.statusCode == 200) {
@@ -798,7 +942,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                                       }
                                                                                                       Navigator.push(
                                                                                                         context,
-                                                                                                        MaterialPageRoute(builder: (context) => WebDashboard(id: widget.id, name:'')),
+                                                                                                        MaterialPageRoute(builder: (context) => WebDashboard(idTemplate: widget.idTemplate, nameTemplate: widget.nameTemplate)),
                                                                                                       );
                                                                                                     }
                                                                                                   },
@@ -829,20 +973,20 @@ class _WebDashboardState extends State<WebDashboard>
                                                                     ),
                                                                     Positioned(
                                                                       bottom:
-                                                                      10,
+                                                                          10,
                                                                       right: 10,
                                                                       child:
-                                                                      IconButton(
+                                                                          IconButton(
                                                                         icon: const Icon(
                                                                             Icons
                                                                                 .delete,
                                                                             color:
-                                                                            Colors.black),
+                                                                                Colors.black),
                                                                         onPressed:
                                                                             () async {
                                                                           showDialog(
                                                                             context:
-                                                                            context,
+                                                                                context,
                                                                             builder:
                                                                                 (BuildContext context) {
                                                                               return AlertDialog(
@@ -859,7 +1003,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           ),
                                                                                         ),
                                                                                         onPressed: () async {
-                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'));
+                                                                                          final response = await http.delete(Uri.parse('$urlpianta/user/graphics/${widget.idTemplate}/${project.id}/'));
                                                                                           if (response.statusCode == 204) {
                                                                                           } else {
                                                                                             print("could not delete graph");
@@ -868,7 +1012,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           Navigator.push(
                                                                                             context,
                                                                                             MaterialPageRoute(
-                                                                                              builder: (context) =>  WebDashboard(id: widget.id, name:''),
+                                                                                              builder: (context) => WebDashboard(idTemplate: widget.idTemplate, nameTemplate: widget.nameTemplate),
                                                                                             ),
                                                                                           );
                                                                                         },
@@ -928,11 +1072,11 @@ class _WebDashboardState extends State<WebDashboard>
                                                                           TempCreateGraficsEdit(
                                                                     title: project
                                                                         .titlegraphics,
-
                                                                     name: project
                                                                         .namegraphics,
                                                                     alias: project
                                                                         .aliasgraphics,
+                                                                            port: project.ports, nameTemplate: widget.nameTemplate, idTemplate: widget.idTemplate,
                                                                   ),
                                                                 ),
                                                               );
@@ -955,24 +1099,34 @@ class _WebDashboardState extends State<WebDashboard>
                                                                       ),
                                                                     ),
                                                                     Wrap(
-                                                                      spacing: 16.0, // Espacio horizontal entre los elementos del Wrap
-                                                                      runSpacing: 8.0, // Espacio vertical entre las líneas de texto
+                                                                      spacing:
+                                                                          16.0, // Espacio horizontal entre los elementos del Wrap
+                                                                      runSpacing:
+                                                                          8.0, // Espacio vertical entre las líneas de texto
                                                                       children: [
                                                                         Text(
                                                                           title,
-                                                                          style: const TextStyle(
-                                                                            fontWeight: FontWeight.bold,
-                                                                            fontSize: 20,
+                                                                          style:
+                                                                              const TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            fontSize:
+                                                                                20,
                                                                           ),
-                                                                          textAlign: TextAlign.left,
+                                                                          textAlign:
+                                                                              TextAlign.left,
                                                                         ),
                                                                         Text(
                                                                           'Port: ${project.ports}',
-                                                                          style: TextStyle(
-                                                                            fontWeight: FontWeight.bold,
-                                                                            fontSize: 20,
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            fontSize:
+                                                                                20,
                                                                           ),
-                                                                          textAlign: TextAlign.center,
+                                                                          textAlign:
+                                                                              TextAlign.center,
                                                                         ),
                                                                       ],
                                                                     ),
@@ -983,219 +1137,243 @@ class _WebDashboardState extends State<WebDashboard>
                                                                           IconButton(
                                                                         icon: const Icon(
                                                                             Icons.edit),
-                                                                            onPressed:
-                                                                                () async {
-                                                                              titleController.text =
-                                                                                  project.titlegraphics ?? '';
-                                                                              nameController.text =
-                                                                                  project.namegraphics ?? '';
-                                                                              aliasController.text =
-                                                                                  project.aliasgraphics ?? '';
-                                                                              // Acción para editar la tarjeta
-                                                                              showDialog(
-                                                                                context:
+                                                                        onPressed:
+                                                                            () async {
+                                                                          titleController.text =
+                                                                              project.titlegraphics ?? '';
+                                                                          nameController.text =
+                                                                              project.namegraphics ?? '';
+                                                                          aliasController.text =
+                                                                              project.aliasgraphics ?? '';
+                                                                          // Acción para editar la tarjeta
+                                                                          showDialog(
+                                                                            context:
                                                                                 context,
-                                                                                builder:
-                                                                                    (context) {
-                                                                                  return AlertDialog(
-                                                                                    elevation: 4.0,
-                                                                                    shape: RoundedRectangleBorder(
-                                                                                      borderRadius: BorderRadius.circular(0),
-                                                                                    ),
-                                                                                    contentPadding: const EdgeInsets.all(30.0),
-                                                                                    content: SizedBox(
-                                                                                      width: 350,
-                                                                                      height: 400,
-                                                                                      child: SingleChildScrollView(
-                                                                                        child: Form(
-                                                                                          key: _formKey,
-                                                                                          child: Column(
-                                                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                            children: [
-                                                                                              const SizedBox(height: 16.0),
-                                                                                              const Text(
-                                                                                                'Edit Graphics',
-                                                                                                style: TextStyle(
-                                                                                                  fontWeight: FontWeight.bold,
-                                                                                                  fontSize: 18.0,
-                                                                                                ),
-                                                                                              ),
-                                                                                              const SizedBox(height: 16.0),
-                                                                                              Text(
-                                                                                                'Chart title: ',
-                                                                                                style: TextStyle(
-                                                                                                  fontWeight: FontWeight.bold,
-                                                                                                  fontSize: 14.0,
-                                                                                                ),
-                                                                                              ),
-                                                                                              const SizedBox(height: 16.0),
-                                                                                              TextFormField(
-                                                                                                //initialValue: _username ?? '',
-                                                                                                controller: titleController,
-                                                                                                validator: (valor) {
-                                                                                                  if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
-                                                                                                    //allow upper and lower case alphabets and space
-                                                                                                    return "Please enter your name";
-                                                                                                  } else if (valor?.trim()?.isEmpty ?? true) {
-                                                                                                    return 'your password must have digits';
-                                                                                                  } else {
-                                                                                                    return null;
-                                                                                                  }
-                                                                                                },
-                                                                                                keyboardType: TextInputType.text,
-                                                                                                //initialValue: _username, // Agregamos el valor inicial aquí
-                                                                                                decoration: const InputDecoration(
-                                                                                                  prefixIcon: Icon(Icons.incomplete_circle_sharp),
-                                                                                                  enabledBorder: OutlineInputBorder(
-                                                                                                    borderSide: BorderSide(
-                                                                                                      width: 1,
-                                                                                                      color: Colors.grey,
-                                                                                                    ), //<-- SEE HERE
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ),
-                                                                                              const SizedBox(height: 16.0),
-                                                                                              const Text(
-                                                                                                'Chart Name :',
-                                                                                                style: TextStyle(
-                                                                                                  fontWeight: FontWeight.bold,
-                                                                                                  fontSize: 14.0, // Se ha cambiado el tamaño a 14.0
-                                                                                                ),
-                                                                                              ),
-                                                                                              const SizedBox(height: 16.0),
-                                                                                              TextFormField(
-                                                                                                //initialValue: _email ?? '',
-                                                                                                controller: nameController,
-                                                                                                validator: (valor) {
-                                                                                                  if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
-                                                                                                    //allow upper and lower case alphabets and space
-                                                                                                    return "Please enter your name";
-                                                                                                  } else if (valor?.trim()?.isEmpty ?? true) {
-                                                                                                    return 'your password must have digits';
-                                                                                                  } else {
-                                                                                                    return null;
-                                                                                                  }
-                                                                                                },
-                                                                                                keyboardType: TextInputType.text,
-                                                                                                decoration: const InputDecoration(
-                                                                                                  prefixIcon: Icon(Icons.supervised_user_circle_outlined),
-                                                                                                  enabledBorder: OutlineInputBorder(
-                                                                                                    borderSide: BorderSide(
-                                                                                                      width: 1,
-                                                                                                      color: Colors.grey,
-                                                                                                    ), //<-- SEE HERE
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ),
-                                                                                              const SizedBox(height: 16.0),
-                                                                                              Text(
-                                                                                                'Chart alias: ',
-                                                                                                style: TextStyle(
-                                                                                                  fontWeight: FontWeight.bold,
-                                                                                                  fontSize: 14.0,
-                                                                                                ),
-                                                                                              ),
-                                                                                              const SizedBox(height: 16.0),
-                                                                                              TextFormField(
-                                                                                                //initialValue: _username ?? '',
-                                                                                                controller: aliasController,
-                                                                                                validator: (valor) {
-                                                                                                  if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
-                                                                                                    //allow upper and lower case alphabets and space
-                                                                                                    return "Please enter your name";
-                                                                                                  } else if (valor?.trim()?.isEmpty ?? true) {
-                                                                                                    return 'your password must have digits';
-                                                                                                  } else {
-                                                                                                    return null;
-                                                                                                  }
-                                                                                                },
-                                                                                                keyboardType: TextInputType.text,
-                                                                                                //initialValue: _username, // Agregamos el valor inicial aquí
-                                                                                                decoration: const InputDecoration(
-                                                                                                  prefixIcon: Icon(Icons.alternate_email_outlined),
-                                                                                                  enabledBorder: OutlineInputBorder(
-                                                                                                    borderSide: BorderSide(
-                                                                                                      width: 1,
-                                                                                                      color: Colors.grey,
-                                                                                                    ), //<-- SEE HERE
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ),
-                                                                                              const SizedBox(height: 20),
-                                                                                              Padding(
-                                                                                                padding: const EdgeInsets.all(30),
-                                                                                                child: Row(
-                                                                                                  mainAxisAlignment: MainAxisAlignment.end,
-                                                                                                  children: [
-                                                                                                    ElevatedButton(
-                                                                                                      onPressed: () {
-                                                                                                        Navigator.of(context).pop();
-                                                                                                      },
-                                                                                                      style: ElevatedButton.styleFrom(
-                                                                                                        minimumSize: const Size(90, 30),
-                                                                                                        backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
-                                                                                                      ),
-                                                                                                      child: const Text(
-                                                                                                        'Cancel',
-                                                                                                        style: TextStyle(fontSize: 12, color: Color.fromRGBO(16, 16, 16, 1)),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                    const SizedBox(
-                                                                                                      width: 25, // Espacio de 16 píxeles entre los botones
-                                                                                                    ),
-                                                                                                    ElevatedButton(
-                                                                                                      onPressed: () async {
-                                                                                                        if (_formKey.currentState!.validate()) {
-                                                                                                          var box = await Hive.openBox(tokenBox);
-                                                                                                          final token = box.get("token") as String?;
-                                                                                                          final response = await http.put(
-                                                                                                            Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'),
-                                                                                                            headers: {
-                                                                                                              'Authorization': 'Token $token',
-                                                                                                              'Content-Type': 'application/json',
-                                                                                                              // Especifica el tipo de contenido del cuerpo de la solicitud
-                                                                                                            },
-                                                                                                            body: jsonEncode({
-                                                                                                              'titlegraphics': titleController.text,
-                                                                                                              'namegraphics': nameController.text,
-                                                                                                              'aliasgraphics': aliasController.text,
-                                                                                                            }),
-                                                                                                          );
-                                                                                                          if (response.statusCode == 200) {
-                                                                                                            print(response.body);
-                                                                                                          } else {
-                                                                                                            print("Could not update graph: ${response.body}");
-                                                                                                          }
-                                                                                                          Navigator.push(
-                                                                                                            context,
-                                                                                                            MaterialPageRoute(builder: (context) => WebDashboard(id: widget.id, name: ''),
-                                                                                                            )
-                                                                                                          );
-                                                                                                        }
-                                                                                                      },
-                                                                                                      style: ElevatedButton.styleFrom(
-                                                                                                        minimumSize: const Size(90, 30),
-                                                                                                        backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
-                                                                                                      ),
-                                                                                                      child: const Text(
-                                                                                                        'Done',
-                                                                                                        style: TextStyle(
-                                                                                                          fontSize: 12,
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                  ],
-                                                                                                ),
-                                                                                              )
-                                                                                            ],
+                                                                            builder:
+                                                                                (context) {
+                                                                              return AlertDialog(
+                                                                                elevation: 4.0,
+                                                                                shape: RoundedRectangleBorder(
+                                                                                  borderRadius: BorderRadius.circular(0),
+                                                                                ),
+                                                                                contentPadding: const EdgeInsets.all(30.0),
+                                                                                content: SizedBox(
+                                                                                  width: 350,
+                                                                                  height: 400,
+                                                                                  child: SingleChildScrollView(
+                                                                                    child: Form(
+                                                                                      key: _formKey,
+                                                                                      child: Column(
+                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                        children: [
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          const Text(
+                                                                                            'Edit Graphics',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 18.0,
+                                                                                            ),
                                                                                           ),
-                                                                                        ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          Text(
+                                                                                            'Chart title: ',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          TextFormField(
+                                                                                            //initialValue: _username ?? '',
+                                                                                            controller: titleController,
+                                                                                            validator: (valor) {
+                                                                                              if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                //allow upper and lower case alphabets and space
+                                                                                                return "Please enter your name";
+                                                                                              } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                return 'your password must have digits';
+                                                                                              } else {
+                                                                                                return null;
+                                                                                              }
+                                                                                            },
+                                                                                            keyboardType: TextInputType.text,
+                                                                                            //initialValue: _username, // Agregamos el valor inicial aquí
+                                                                                            decoration: const InputDecoration(
+                                                                                              prefixIcon: Icon(Icons.incomplete_circle_sharp),
+                                                                                              enabledBorder: OutlineInputBorder(
+                                                                                                borderSide: BorderSide(
+                                                                                                  width: 1,
+                                                                                                  color: Colors.grey,
+                                                                                                ), //<-- SEE HERE
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          const Text(
+                                                                                            'Chart Name :',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0, // Se ha cambiado el tamaño a 14.0
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          TextFormField(
+                                                                                            //initialValue: _email ?? '',
+                                                                                            controller: nameController,
+                                                                                            validator: (valor) {
+                                                                                              if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                //allow upper and lower case alphabets and space
+                                                                                                return "Please enter your name";
+                                                                                              } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                return 'your password must have digits';
+                                                                                              } else {
+                                                                                                return null;
+                                                                                              }
+                                                                                            },
+                                                                                            keyboardType: TextInputType.text,
+                                                                                            decoration: const InputDecoration(
+                                                                                              prefixIcon: Icon(Icons.supervised_user_circle_outlined),
+                                                                                              enabledBorder: OutlineInputBorder(
+                                                                                                borderSide: BorderSide(
+                                                                                                  width: 1,
+                                                                                                  color: Colors.grey,
+                                                                                                ), //<-- SEE HERE
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          Text(
+                                                                                            'Chart alias: ',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 16.0),
+                                                                                          TextFormField(
+                                                                                            //initialValue: _username ?? '',
+                                                                                            controller: aliasController,
+                                                                                            validator: (valor) {
+                                                                                              if (valor!.isEmpty || !RegExp(r'^[a-z A-Z]+$').hasMatch(valor)) {
+                                                                                                //allow upper and lower case alphabets and space
+                                                                                                return "Please enter your name";
+                                                                                              } else if (valor?.trim()?.isEmpty ?? true) {
+                                                                                                return 'your password must have digits';
+                                                                                              } else {
+                                                                                                return null;
+                                                                                              }
+                                                                                            },
+                                                                                            keyboardType: TextInputType.text,
+                                                                                            //initialValue: _username, // Agregamos el valor inicial aquí
+                                                                                            decoration: const InputDecoration(
+                                                                                              prefixIcon: Icon(Icons.alternate_email_outlined),
+                                                                                              enabledBorder: OutlineInputBorder(
+                                                                                                borderSide: BorderSide(
+                                                                                                  width: 1,
+                                                                                                  color: Colors.grey,
+                                                                                                ), //<-- SEE HERE
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 20),
+                                                                                          Text(
+                                                                                            'Elegir PIN',
+                                                                                            style: TextStyle(
+                                                                                              fontWeight: FontWeight.bold,
+                                                                                              fontSize: 14.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 20),
+                                                                                          DropdownButtonFormField<double>(
+                                                                                            value: _selectedValue,
+                                                                                            onChanged: (value) {
+                                                                                              setState(() {
+                                                                                                _selectedValue = value!;
+                                                                                              });
+                                                                                            },
+                                                                                            items: _vValues.map<DropdownMenuItem<double>>((value) {
+                                                                                              return DropdownMenuItem<double>(
+                                                                                                value: value,
+                                                                                                child: Text('v$value'),
+                                                                                              );
+                                                                                            }).toList(),
+                                                                                          ),
+                                                                                          const SizedBox(height: 20),
+                                                                                          Padding(
+                                                                                            padding: const EdgeInsets.all(30),
+                                                                                            child: Row(
+                                                                                              mainAxisAlignment: MainAxisAlignment.end,
+                                                                                              children: [
+                                                                                                ElevatedButton(
+                                                                                                  onPressed: () {
+                                                                                                    Navigator.of(context).pop();
+                                                                                                  },
+                                                                                                  style: ElevatedButton.styleFrom(
+                                                                                                    minimumSize: const Size(90, 30),
+                                                                                                    backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
+                                                                                                  ),
+                                                                                                  child: const Text(
+                                                                                                    'Cancel',
+                                                                                                    style: TextStyle(fontSize: 12, color: Color.fromRGBO(16, 16, 16, 1)),
+                                                                                                  ),
+                                                                                                ),
+                                                                                                const SizedBox(
+                                                                                                  width: 25, // Espacio de 16 píxeles entre los botones
+                                                                                                ),
+                                                                                                ElevatedButton(
+                                                                                                  onPressed: () async {
+                                                                                                    if (_formKey.currentState!.validate()) {
+                                                                                                      var box = await Hive.openBox(tokenBox);
+                                                                                                      final token = box.get("token") as String?;
+                                                                                                      final response = await http.put(
+                                                                                                        Uri.parse('$urlpianta/user/graphics/${widget.idTemplate}/${project.id}/'),
+                                                                                                        headers: {
+                                                                                                          'Authorization': 'Token $token',
+                                                                                                          'Content-Type': 'application/json',
+                                                                                                          // Especifica el tipo de contenido del cuerpo de la solicitud
+                                                                                                        },
+                                                                                                        body: jsonEncode({
+                                                                                                          'titlegraphics': titleController.text,
+                                                                                                          'namegraphics': nameController.text,
+                                                                                                          'aliasgraphics': aliasController.text,
+                                                                                                          'ports': _selectedValue.toString(),
+                                                                                                        }),
+                                                                                                      );
+                                                                                                      if (response.statusCode == 200) {
+                                                                                                        print(response.body);
+                                                                                                      } else {
+                                                                                                        print("Could not update graph: ${response.body}");
+                                                                                                      }
+                                                                                                      Navigator.push(
+                                                                                                          context,
+                                                                                                          MaterialPageRoute(
+                                                                                                            builder: (context) => WebDashboard(idTemplate: widget.idTemplate, nameTemplate: widget.nameTemplate),
+                                                                                                          ));
+                                                                                                    }
+                                                                                                  },
+                                                                                                  style: ElevatedButton.styleFrom(
+                                                                                                    minimumSize: const Size(90, 30),
+                                                                                                    backgroundColor: const Color.fromRGBO(0, 191, 174, 1),
+                                                                                                  ),
+                                                                                                  child: const Text(
+                                                                                                    'Done',
+                                                                                                    style: TextStyle(
+                                                                                                      fontSize: 12,
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ],
+                                                                                            ),
+                                                                                          )
+                                                                                        ],
                                                                                       ),
                                                                                     ),
-                                                                                  );
-                                                                                },
+                                                                                  ),
+                                                                                ),
                                                                               );
                                                                             },
+                                                                          );
+                                                                        },
                                                                       ),
                                                                     ),
                                                                     Positioned(
@@ -1230,7 +1408,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           ),
                                                                                         ),
                                                                                         onPressed: () async {
-                                                                                          final response = await http.delete(Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/${project.id}/'));
+                                                                                          final response = await http.delete(Uri.parse('$urlpianta/user/graphics/${widget.idTemplate}/${project.id}/'));
                                                                                           if (response.statusCode == 204) {
                                                                                           } else {
                                                                                             print("could not delete graph");
@@ -1239,7 +1417,7 @@ class _WebDashboardState extends State<WebDashboard>
                                                                                           Navigator.push(
                                                                                             context,
                                                                                             MaterialPageRoute(
-                                                                                              builder: (context) =>  WebDashboard(id: widget.id, name:''),
+                                                                                              builder: (context) => WebDashboard(idTemplate: widget.idTemplate, nameTemplate: widget.nameTemplate),
                                                                                             ),
                                                                                           );
                                                                                         },
@@ -1348,9 +1526,9 @@ class Circular_graphics extends CustomPainter {
 
     if (currentProgress > 30) {
       animationArc.color = Colors.red;
-    } else if (currentProgress > 27) {
+    } else if (currentProgress > 15) {
       animationArc.color = Colors.orange;
-    } else if (currentProgress > 20) {
+    } else if (currentProgress > 10) {
       animationArc.color = Colors.yellow;
     } else {
       animationArc.color = Colors.blue;
@@ -1366,6 +1544,7 @@ class Circular_graphics extends CustomPainter {
     return true;
   }
 }
+
 class Linea_Graphics extends StatelessWidget {
   const Linea_Graphics({Key? key}) : super(key: key);
 

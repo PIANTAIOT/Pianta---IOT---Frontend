@@ -9,6 +9,7 @@ import 'package:pianta/MyDevices/Dashboard.dart';
 import 'package:pianta/constants.dart';
 import '../Funciones/constantes.dart';
 import '../Graficas/TemplateNewGrafic.dart';
+import '../UrlBackend.dart';
 import 'create_templete.dart';
 
 class Templates extends StatefulWidget {
@@ -37,7 +38,7 @@ class _TemplatesState extends State<Templates> {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/template/'),
+      Uri.parse('$urlpianta/user/template/'),
       headers: {'Authorization': 'Token $token'},
     );
     if (response.statusCode == 200) {
@@ -217,7 +218,7 @@ class _TemplatesState extends State<Templates> {
                                                     ),
                                                     onPressed: () async {
                                                       final response = await http.delete(
-                                                          Uri.parse('http://127.0.0.1:8000/user/template/${project.id}/'));
+                                                          Uri.parse('$urlpianta/user/template/${project.id}/'));
                                                       if (response.statusCode == 204) {
 
                                                       } else {
@@ -353,7 +354,7 @@ class Dashboard extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => WebDashboard(
-                                          id: project.id, name: project.name),
+                                          idTemplate: project.id, nameTemplate: project.name),
                                     ),
                                   );
                                 },
@@ -452,12 +453,12 @@ class Dashboard extends StatelessWidget {
                               style: TextStyle(fontSize: 24),
                             ),
                              Text(
-                              'http://127.0.0.1:8000/user/api/DatosSensores/${project.id}/',
+                              '$urlpianta/user/api/DatosSensores/${project.id}/',
                               style: TextStyle(fontSize: 24),
                             ),
                             IconButton(
                               onPressed: () async {
-                                String textToCopy = 'http://127.0.0.1:8000/user/api/DatosSensores/${project.id}/';
+                                String textToCopy = '$urlpianta/user/api/DatosSensores/${project.id}/';
                                 await Clipboard.setData(ClipboardData(text: textToCopy));
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

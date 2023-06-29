@@ -10,6 +10,7 @@ import '../Home/graphics_model.dart';
 import '../Home/template_model.dart';
 import '../Home/templates.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../UrlBackend.dart';
 import '../constants.dart';
 import '../maps/mapasensor.dart';
 import '../maps/maps.dart';
@@ -63,7 +64,8 @@ class Sensor {
 
 class VirtualPinDatastream extends StatefulWidget {
   final int id;
-  const VirtualPinDatastream({Key? key, required this.id}) : super(key: key);
+  final String nameTemplate;
+  const VirtualPinDatastream({Key? key, required this.id, required this.nameTemplate,}) : super(key: key);
 
   @override
   State<VirtualPinDatastream> createState() => _VirtualPinDatastreamState();
@@ -79,21 +81,23 @@ class _VirtualPinDatastreamState extends State<VirtualPinDatastream> {
   final _formKey = GlobalKey<FormState>();
   final _deviceNameController = TextEditingController();
   final _locationController = TextEditingController();
-    String? _selectedValue;
-    final List<String> _vValues = [
-      'v1',
-      'v2',
-      'v3',
-      'v4',
-      'v5',
-      'v6',
-      'v7',
-      'v8',
-      'v9',
-      'v10',
-      'v11',
-      'v12',
-    ];
+
+  double? _selectedValue;
+  final List<double> _vValues = [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    6.0,
+    7.0,
+    8.0,
+    9.0,
+    10.0,
+    11.0,
+    12.0,
+  ];
+
 @override
 void initState() {
   super.initState();
@@ -110,7 +114,7 @@ void initState() {
     var box = await Hive.openBox(tokenBox);
     final token = box.get("token") as String?;
     final response =
-    await http.get(Uri.parse('http://127.0.0.1:8000/user/template/'),headers: {'Authorization': 'Token $token'},);
+    await http.get(Uri.parse('$urlpianta/user/template/'),headers: {'Authorization': 'Token $token'},);
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       final List<ProjectTemplate> projects =
@@ -147,7 +151,7 @@ void initState() {
     print(storedIsCircular);
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/'),
+        Uri.parse('$urlpianta/user/graphics/${widget.id}/'),
         body: {
           'titlegraphics': storedTitle,
           'namegraphics': storedName,
@@ -155,7 +159,7 @@ void initState() {
           'location': storedLocation,
           'is_circular': storedIsCircular.toString(),
           'color':_selectedColor.toString(),
-          'ports': _selectedValue ?? '',
+          'ports': _selectedValue.toString(),
         },
 
       );
@@ -203,7 +207,7 @@ void initState() {
   Future<List<GrapchisTemplate>> fetchGraphics() async {
 
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/user/graphics/${widget.id}/'),
+      Uri.parse('$urlpianta/user/graphics/${widget.id}/'),
 
     );
 
@@ -331,18 +335,17 @@ void initState() {
                                         ],
                                       ),
                                       const SizedBox(height: 16.0),
-                                      DropdownButtonFormField<String>(
+                                      DropdownButtonFormField<double>(
                                         value: _selectedValue,
                                         onChanged: (value) {
                                           setState(() {
-                                            _selectedValue = value;
+                                            _selectedValue = value!;
                                           });
                                         },
-                                        items: _vValues
-                                            .map<DropdownMenuItem<String>>((value) {
-                                          return DropdownMenuItem<String>(
+                                        items: _vValues.map<DropdownMenuItem<double>>((value) {
+                                          return DropdownMenuItem<double>(
                                             value: value,
-                                            child: Text(value),
+                                            child: Text('v$value'),
                                           );
                                         }).toList(),
                                       ),
@@ -486,7 +489,7 @@ void initState() {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                         Templates(),
+                                         WebDashboard(idTemplate: widget.id, nameTemplate: widget.nameTemplate),
                                       ),
                                     );
                                   },
